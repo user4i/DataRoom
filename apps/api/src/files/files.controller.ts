@@ -76,6 +76,15 @@ export class FilesController {
     return this.files.move(user.id, id, dto);
   }
 
+  @Get('files/:id/move-impact')
+  moveImpact(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Query('folderId') folderId?: string,
+  ) {
+    return this.files.moveImpact(user.id, id, folderId || null);
+  }
+
   @Delete('files/:id')
   remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
     return this.files.remove(user.id, id);

@@ -51,8 +51,12 @@ export class FoldersController {
   }
 
   @Delete('folders/:id')
-  async remove(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    const result = await this.folders.remove(user.id, id);
+  async remove(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Query('confirmViewers') confirmViewers?: string,
+  ) {
+    const result = await this.folders.remove(user.id, id, confirmViewers === 'true');
     await Promise.all(result.storageKeys.map((key) => this.storage.deleteObject(key)));
     return { deleted: true };
   }

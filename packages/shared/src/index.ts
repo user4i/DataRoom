@@ -82,4 +82,9 @@ export type DeletionPreviewDto = {
   fileCount: number;
   totalSize: string;
   sampleNames: string[];
+  viewers: {
+    publicLinkCount: number;
+    peopleCount: number;
+    people: string[];
+  };
 };

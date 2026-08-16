@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import { AccessService } from '../access/access.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { rethrowUnique } from '../common/prisma-errors';
@@ -135,10 +135,14 @@ export class FoldersService {
       fileCount: files.length,
       totalSize: files.reduce((sum, f) => sum + f.size, 0n).toString(),
       sampleNames,
+      viewers: await this.viewerAccess(
+        nestedFolders.map((f) => f.id),
+        files.map((f) => f.id),
+      ),
     };
   }
 
-  async remove(userId: string, id: string) {
+  async remove(userId: string, id: string, confirmViewers = false) {
     const folder = await this.access.getFolderOrThrow(id);
     await this.access.assertCanEdit(userId, folder.dataRoomId);
 
@@ -148,8 +152,18 @@ export class FoldersService {
     });
     const files = await this.prisma.file.findMany({
       where: { folderId: { in: nestedFolders.map((f) => f.id) } },
-      select: { storageKey: true },
+      select: { id: true, storageKey: true },
     });
+
+    const viewers = await this.viewerAccess(
+      nestedFolders.map((f) => f.id),
+      files.map((f) => f.id),
+    );
+    if (viewers.publicLinkCount + viewers.peopleCount > 0 && !confirmViewers) {
+      throw new ConflictException(
+        'Цю папку зараз можуть переглядати інші. Підтвердьте відкликання доступу з правами власника, щоб видалити.',
+      );
+    }
 
     await this.prisma.$transaction(async (tx) => {
       if (folder.parentId) {
@@ -169,6 +183,35 @@ export class FoldersService {
     });
 
     return { deleted: true, storageKeys: files.map((f) => f.storageKey) };
+  }
+
+  private async viewerAccess(folderIds: string[], fileIds: string[]) {
+    if (folderIds.length === 0 && fileIds.length === 0) {
+      return { publicLinkCount: 0, peopleCount: 0, people: [] as string[] };
+    }
+    const shares = await this.prisma.share.findMany({
+      where: {
+        revokedAt: null,
+        OR: [
+          ...(folderIds.length ? [{ resourceType: 'FOLDER' as const, resourceId: { in: folderIds } }] : []),
+          ...(fileIds.length ? [{ resourceType: 'FILE' as const, resourceId: { in: fileIds } }] : []),
+        ],
+      },
+      include: { user: { select: { email: true } } },
+    });
+    const people = [
+      ...new Set(
+        shares
+          .filter((share) => share.kind === 'USER')
+          .map((share) => share.user?.email || share.invitedEmail)
+          .filter((email): email is string => Boolean(email)),
+      ),
+    ];
+    return {
+      publicLinkCount: shares.filter((share) => share.kind === 'PUBLIC_LINK').length,
+      peopleCount: people.length,
+      people: people.slice(0, 8),
+    };
   }
 
   async tree(userId: string, dataRoomId: string, parentId?: string | null) {

@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsIn,
   IsInt,
   IsOptional,
@@ -85,4 +86,8 @@ export class MoveFileDto {
   @MinLength(1)
   @MaxLength(255)
   name?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  confirmViewers?: boolean;
 }

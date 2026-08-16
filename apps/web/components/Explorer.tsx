@@ -46,7 +46,11 @@ export function Explorer({
   const [renameTarget, setRenameTarget] = useState<{ type: "folder" | "file"; id: string; name: string } | null>(null);
   const [share, setShare] = useState<{ type: ResourceType; id: string } | null>(null);
   const [moveFile, setMoveFile] = useState<FileDto | null>(null);
-  const [pendingMove, setPendingMove] = useState<{ fileId: string; folderId: string | null } | null>(null);
+  const [pendingMove, setPendingMove] = useState<{
+    fileId: string;
+    folderId: string | null;
+    confirmViewers?: boolean;
+  } | null>(null);
   const [moveConflict, setMoveConflict] = useState<NameConflict | null>(null);
   const [deletePreview, setDeletePreview] = useState<DeletionPreviewDto | null>(null);
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
@@ -153,22 +157,37 @@ export function Explorer({
       if (decision.action === "replace") {
         await api(`/files/${pending.fileId}/move`, {
           method: "POST",
-          body: JSON.stringify({ folderId: pending.folderId, conflict: "replace" }),
+          body: JSON.stringify({
+            folderId: pending.folderId,
+            conflict: "replace",
+            ...(pending.confirmViewers ? { confirmViewers: true } : {}),
+          }),
         });
       } else if (decision.action === "keep_both") {
         await api(`/files/${pending.fileId}/move`, {
           method: "POST",
-          body: JSON.stringify({ folderId: pending.folderId, conflict: "keep_both" }),
+          body: JSON.stringify({
+            folderId: pending.folderId,
+            conflict: "keep_both",
+            ...(pending.confirmViewers ? { confirmViewers: true } : {}),
+          }),
         });
       } else if (decision.action === "rename_new" || decision.action === "rename_both") {
         await api(`/files/${pending.fileId}/move`, {
           method: "POST",
-          body: JSON.stringify({ folderId: pending.folderId, name: decision.newName }),
+          body: JSON.stringify({
+            folderId: pending.folderId,
+            name: decision.newName,
+            ...(pending.confirmViewers ? { confirmViewers: true } : {}),
+          }),
         });
       } else {
         await api(`/files/${pending.fileId}/move`, {
           method: "POST",
-          body: JSON.stringify({ folderId: pending.folderId }),
+          body: JSON.stringify({
+            folderId: pending.folderId,
+            ...(pending.confirmViewers ? { confirmViewers: true } : {}),
+          }),
         });
       }
       toast.success("Файл переміщено");
@@ -511,7 +530,8 @@ export function Explorer({
           onOpenChange={(v) => !v && setMoveFile(null)}
           dataRoomId={listing.dataRoom.id}
           dataRoomName={listing.dataRoom.name}
-          onMove={async (dest) => {
+          fileId={moveFile.id}
+          onMove={async (dest, options) => {
             const query = new URLSearchParams({ name: moveFile.name, excludeId: moveFile.id });
             if (dest) query.set("folderId", dest);
             const check = await api<{
@@ -520,13 +540,19 @@ export function Explorer({
               suggestedOldName: string;
             }>(`/data-rooms/${listing.dataRoom.id}/file-conflict?${query.toString()}`);
             if (!check.existing) {
-              await api(`/files/${moveFile.id}/move`, { method: "POST", body: JSON.stringify({ folderId: dest }) });
+              await api(`/files/${moveFile.id}/move`, {
+                method: "POST",
+                body: JSON.stringify({
+                  folderId: dest,
+                  ...(options?.confirmViewers ? { confirmViewers: true } : {}),
+                }),
+              });
               toast.success("Файл переміщено");
               setMoveFile(null);
               await load();
               return;
             }
-            setPendingMove({ fileId: moveFile.id, folderId: dest });
+            setPendingMove({ fileId: moveFile.id, folderId: dest, confirmViewers: options?.confirmViewers });
             setMoveConflict({
               existing: check.existing,
               suggestedNewName: check.suggestedNewName,
@@ -555,7 +581,10 @@ export function Explorer({
         onConfirm={async () => {
           if (!deleteFolderId) return;
           try {
-            await api(`/folders/${deleteFolderId}`, { method: "DELETE" });
+            const viewers = deletePreview?.viewers;
+            const confirmViewers = Boolean(viewers && viewers.publicLinkCount + viewers.peopleCount > 0);
+            const query = confirmViewers ? "?confirmViewers=true" : "";
+            await api(`/folders/${deleteFolderId}${query}`, { method: "DELETE" });
             toast.success("Папку видалено");
             setDeleteFolderId(null);
             setDeletePreview(null);

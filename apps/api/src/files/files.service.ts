@@ -275,6 +275,13 @@ export class FilesService {
       }
     }
 
+    const lostViewers = await this.viewersLostByMove(file, nextFolderId);
+    if (lostViewers.publicLinkCount + lostViewers.peopleCount > 0 && !dto.confirmViewers) {
+      throw new ConflictException(
+        'Цей файл зараз можуть бачити інші в папці, яку переглядають. Підтвердьте переміщення з правами власника.',
+      );
+    }
+
     const nextName = (dto.name ?? file.name).trim();
     const existing = await this.prisma.file.findFirst({
       where: {
@@ -300,6 +307,62 @@ export class FilesService {
       folderId: nextFolderId,
       ...(dto.name ? { name: nextName } : {}),
     });
+  }
+
+  async moveImpact(userId: string, id: string, destFolderId: string | null) {
+    const file = await this.access.getFileOrThrow(id);
+    await this.access.assertCanEdit(userId, file.dataRoomId);
+    if (destFolderId) {
+      const dest = await this.access.getFolderOrThrow(destFolderId);
+      if (dest.dataRoomId !== file.dataRoomId) {
+        throw new NotFoundException('Папку призначення не знайдено');
+      }
+    }
+    return this.viewersLostByMove(file, destFolderId);
+  }
+
+  private async viewersLostByMove(
+    file: { folderId: string | null; dataRoomId: string },
+    destFolderId: string | null,
+  ) {
+    const empty = { publicLinkCount: 0, peopleCount: 0, people: [] as string[] };
+    if (!file.folderId) return empty;
+    const source = await this.access.getFolderOrThrow(file.folderId);
+    const dest = destFolderId ? await this.access.getFolderOrThrow(destFolderId) : null;
+    const ancestorIds = ancestorIdsFromPath(source.path);
+    if (ancestorIds.length === 0) return empty;
+    const shares = await this.prisma.share.findMany({
+      where: {
+        revokedAt: null,
+        resourceType: 'FOLDER',
+        resourceId: { in: ancestorIds },
+      },
+      include: { user: { select: { email: true } } },
+    });
+    if (shares.length === 0) return empty;
+    const roots = await this.prisma.folder.findMany({
+      where: { id: { in: [...new Set(shares.map((share) => share.resourceId))] } },
+      select: { id: true, path: true },
+    });
+    const pathById = new Map(roots.map((folder) => [folder.id, folder.path]));
+    const leaving = shares.filter((share) => {
+      const rootPath = pathById.get(share.resourceId);
+      if (!rootPath) return false;
+      return !(dest && dest.path.startsWith(rootPath));
+    });
+    const people = [
+      ...new Set(
+        leaving
+          .filter((share) => share.kind === 'USER')
+          .map((share) => share.user?.email || share.invitedEmail)
+          .filter((email): email is string => Boolean(email)),
+      ),
+    ];
+    return {
+      publicLinkCount: leaving.filter((share) => share.kind === 'PUBLIC_LINK').length,
+      peopleCount: people.length,
+      people: people.slice(0, 8),
+    };
   }
 
   private async replaceOnMove(
