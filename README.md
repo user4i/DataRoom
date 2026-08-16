@@ -15,19 +15,21 @@ Virtual data room MVP: nested folders, PDF files, public links, and per-user sha
 - Optional: S3-compatible bucket (Cloudflare R2). Local disk is the default fallback.
 
 ```bash
-nvm use 26.7.0
-node -v   # v26.7.0
+node -v          # skip nvm if this is already v26.7.0
+nvm use          # only when the version does not match .nvmrc
 ```
+
+Windows: `npm run dev:up` starts Postgres and applies migrations. It calls `nvm use` only if `node -v` is not **26.7.0**, and prefers Docker Desktop over leftover Toolbox `DOCKER_HOST`.
 
 ## Local setup
 
 ```bash
 git clone https://github.com/user4i/DataRoom.git
 cd DataRoom
-nvm use
+node -v          # nvm use only if this is not v26.7.0
 npm install
 
-# Postgres
+# Postgres + migrations (or: npm run dev:up)
 docker compose up -d
 
 # API env
@@ -75,6 +77,7 @@ Never commit `.env` or `.env.local`.
 
 | Script                | What it does                              |
 | --------------------- | ----------------------------------------- |
+| `npm run dev:up`      | Postgres + migrations; `nvm use` only if Node ≠ `.nvmrc` |
 | `npm run dev:api`     | NestJS watch mode on port 3001            |
 | `npm run dev:web`     | Next.js dev server on port 3000           |
 | `npm run build:api`   | Generate Prisma client and compile NestJS |
