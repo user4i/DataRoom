@@ -41,7 +41,21 @@ export async function api<T>(
   const body = await res.json().catch(() => ({}));
   if (!res.ok) {
     const message = Array.isArray(body.message) ? body.message.join(", ") : body.message || res.statusText;
-    throw new ApiError(res.status, message);
+    if (res.status === 401 && typeof window !== "undefined" && !path.startsWith("/auth/")) {
+      setToken(null);
+      if (!window.location.pathname.startsWith("/login") && !window.location.pathname.startsWith("/s/")) {
+        window.location.href = "/login";
+      }
+    }
+    throw new ApiError(res.status, statusMessage(res.status, message));
   }
   return body as T;
+}
+
+function statusMessage(status: number, fallback: string) {
+  if (status === 401) return fallback || "Please sign in";
+  if (status === 403) return fallback || "You do not have access to this item";
+  if (status === 404) return fallback || "This item is no longer available";
+  if (status === 409) return fallback || "An item with this name already exists here";
+  return fallback;
 }
