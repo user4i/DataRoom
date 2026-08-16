@@ -10,7 +10,7 @@ Virtual data room MVP: nested folders, PDF files, public links, and per-user sha
 ## Prerequisites
 
 - [nvm](https://github.com/nvm-sh/nvm) or [nvm-windows](https://github.com/coreybutler/nvm-windows)
-- Node **26.7.0** (`nvm use` reads `.nvmrc`)
+- Node **26.7.0** locally (`nvm use` reads `.nvmrc`); Vercel uses Node **24.x** (`engines` in `package.json`)
 - Docker (for local PostgreSQL) **or** a hosted Postgres URL (Neon)
 - Optional: S3-compatible bucket (Cloudflare R2). Local disk is the default fallback.
 
@@ -196,7 +196,7 @@ Smoke checklist (incognito): register → create room → nested folder → uplo
 
 ## CI/CD (GitHub Actions)
 
-Push and pull requests run **CI** (`.github/workflows/ci.yml`): `npm ci`, then build `apps/api` and `apps/web`. Node **26.7.0** when that release is available to the runner, otherwise **22**.
+Push and pull requests run **CI** (`.github/workflows/ci.yml`): `npm ci`, then build `apps/api` and `apps/web`. Node **24** (Vercel-compatible).
 
 Push to `main` runs **CD** (`.github/workflows/deploy.yml`):
 

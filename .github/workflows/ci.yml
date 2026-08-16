@@ -20,26 +20,10 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Prefer .nvmrc (26.7.0). If that Current release is missing from
-      # nodejs.org / the runner, fall back to Node 22 LTS so CI still runs.
-      - name: Resolve Node.js version
-        id: node
-        shell: bash
-        run: |
-          preferred="26.7.0"
-          fallback="22"
-          url="https://nodejs.org/dist/v${preferred}/node-v${preferred}-linux-x64.tar.xz"
-          if curl -fsI "$url" >/dev/null; then
-            echo "version=${preferred}" >> "$GITHUB_OUTPUT"
-          else
-            echo "version=${fallback}" >> "$GITHUB_OUTPUT"
-          fi
-          echo "Resolved Node.js ${preferred} or fallback ${fallback}"
-
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ steps.node.outputs.version }}
+          node-version: 24
           cache: npm
 
       - name: Install
