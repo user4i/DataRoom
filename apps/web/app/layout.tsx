@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   description: "Віртуальна кімната даних для вкладених папок, PDF і спільного доступу",
 };
 
-const themeBootstrap = `(function(){try{var s=localStorage.getItem("dataroom-theme");var p=s==="light"||s==="dark"||s==="medium"||s==="system"?s:"system";var t=p==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):p;document.documentElement.dataset.theme=t;}catch(e){}})();`;
+const themeBootstrap = `(function(){try{var s=localStorage.getItem("dataroom-theme");var p=s==="light"||s==="dark"||s==="medium"||s==="system"?s:"system";var t=p==="system"?(matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):p;var r=document.documentElement;r.dataset.theme=t;r.style.colorScheme=t==="dark"?"dark":"light";r.classList.toggle("dark",t==="dark");}catch(e){}})();`;
 
 export default function RootLayout({
   children,

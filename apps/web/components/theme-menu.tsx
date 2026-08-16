@@ -19,7 +19,8 @@ const OPTIONS: { id: ThemePreference; label: string; hint: string }[] = [
 ];
 
 export function ThemeMenu() {
-  const { theme, resolved, setTheme } = useTheme();
+  const { theme, resolved, systemDark, setTheme } = useTheme();
+  const systemHint = systemDark ? "Як у системі · зараз темна" : "Як у системі · зараз світла";
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -36,7 +37,9 @@ export function ThemeMenu() {
             </span>
             <span>
               <span className="block">{option.label}</span>
-              <span className="block text-xs text-muted-foreground">{option.hint}</span>
+              <span className="block text-xs text-muted-foreground">
+                {option.id === "system" ? systemHint : option.hint}
+              </span>
             </span>
           </DropdownMenuItem>
         ))}
