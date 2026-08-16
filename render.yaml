@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: gs1-data-room-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    buildCommand: npm install && npm run db:generate && npm run db:deploy && npm run build:api
+    startCommand: npm run start:prod -w api
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_VERSION
+        value: 26.7.0
+      - key: STORAGE_DRIVER
+        value: local
+      - key: PORT
+        value: 3001
