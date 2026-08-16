@@ -337,4 +337,13 @@ export class FilesService {
       createdAt: v.createdAt.toISOString(),
     }));
   }
+
+  async versionUrl(userId: string, fileId: string, versionId: string) {
+    const file = await this.access.getFileOrThrow(fileId);
+    await this.access.assertCanView({ userId, dataRoomId: file.dataRoomId, fileId: file.id });
+    const version = await this.prisma.fileVersion.findFirst({ where: { id: versionId, fileId } });
+    if (!version) throw new NotFoundException('Version not found');
+    const url = await this.storage.signDownload(version.storageKey, file.name);
+    return { url, version: version.version, size: version.size.toString() };
+  }
 }

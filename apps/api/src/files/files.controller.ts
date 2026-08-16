@@ -38,6 +38,15 @@ export class FilesController {
     return this.files.versions(user.id, id);
   }
 
+  @Get('files/:id/versions/:versionId')
+  versionUrl(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Param('versionId') versionId: string,
+  ) {
+    return this.files.versionUrl(user.id, id, versionId);
+  }
+
   @Patch('files/:id')
   rename(
     @CurrentUser() user: RequestUser,

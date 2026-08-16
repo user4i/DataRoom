@@ -69,8 +69,24 @@ export function FileViewer({
             <h2 className="text-sm font-medium">Previous versions</h2>
             <ul className="mt-2 divide-y rounded-lg border bg-card text-sm">
               {versions.map((v) => (
-                <li key={v.id} className="px-3 py-2 text-muted-foreground">
-                  Version {v.version} · {new Date(v.createdAt).toLocaleString()}
+                <li key={v.id} className="flex items-center justify-between px-3 py-2">
+                  <span className="text-muted-foreground">
+                    Version {v.version} · {new Date(v.createdAt).toLocaleString()}
+                  </span>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      try {
+                        const res = await api<{ url: string }>(`/files/${fileId}/versions/${v.id}`);
+                        setData((d) => (d ? { ...d, url: res.url } : d));
+                      } catch (err) {
+                        toast.error(err instanceof Error ? err.message : "Could not open version");
+                      }
+                    }}
+                  >
+                    View
+                  </Button>
                 </li>
               ))}
             </ul>
