@@ -14,11 +14,30 @@ function isInternalNav(anchor: HTMLAnchorElement) {
   return url.pathname !== window.location.pathname || url.search !== window.location.search;
 }
 
+const INTENSITY_MS = 2500;
+
 export function RouteProgress() {
   const pathname = usePathname();
   const [state, setState] = useState({ visible: false, value: 0 });
+  const [intensity, setIntensity] = useState(0);
 
   useEffect(() => subscribeProgress(setState), []);
+
+  useEffect(() => {
+    if (!state.visible) {
+      setIntensity(0);
+      return;
+    }
+    const started = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const next = Math.min(1, (now - started) / INTENSITY_MS);
+      setIntensity(next);
+      if (next < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [state.visible]);
 
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
@@ -39,20 +58,24 @@ export function RouteProgress() {
     return () => window.clearTimeout(timer);
   }, [pathname]);
 
+  const height = 2 + intensity * 2;
+  const opacity = state.visible ? 0.22 + intensity * 0.58 : 0;
+
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-[2px] overflow-hidden"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-1 overflow-hidden"
       aria-hidden
       role="presentation"
     >
       <div
-        className="h-full origin-left bg-foreground/30"
+        className="origin-left bg-foreground"
         style={{
           width: `${Math.round(state.value * 1000) / 10}%`,
-          opacity: state.visible ? 1 : 0,
+          height: `${height}px`,
+          opacity,
           transition: state.visible
-            ? "width 280ms ease-out, opacity 180ms linear"
-            : "width 0ms, opacity 180ms linear",
+            ? "width 280ms ease-out, opacity 180ms linear, height 280ms ease-out"
+            : "width 0ms, opacity 180ms linear, height 180ms ease-out",
         }}
       />
     </div>
