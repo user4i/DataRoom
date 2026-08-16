@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Share2 } from "lucide-react";
+import { Plus, Search, Share2, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import type { DeletionPreviewDto, FileDto, FolderDto, ListingDto, ResourceType } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
@@ -19,6 +19,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { MoveFileDialog } from "@/components/MoveFileDialog";
 import { DeletePreviewDialog } from "@/components/DeletePreviewDialog";
 import { EmptyState } from "@/components/empty-state";
+import { useDensity } from "@/lib/density";
 
 export function Explorer({
   roomId,
@@ -30,6 +31,8 @@ export function Explorer({
   publicToken?: string;
 }) {
   const router = useRouter();
+  const { density } = useDensity();
+  const compact = density === "compact";
   const [listing, setListing] = useState<ListingDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -41,6 +44,9 @@ export function Explorer({
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<{ folders: { id: string; name: string }[]; files: { id: string; name: string }[] } | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [uploadOpen, setUploadOpen] = useState(false);
+  const [uploadBusy, setUploadBusy] = useState(false);
 
   const isPublic = Boolean(publicToken);
   const canEdit = listing?.access === "OWNER" && !isPublic;
@@ -140,10 +146,57 @@ export function Explorer({
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={compact ? "space-y-3" : "space-y-6"}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
         <Breadcrumbs items={listing.breadcrumbs} hrefFor={hrefFor} />
         {canEdit ? (
+          compact ? (
+          <div className="flex items-center gap-1">
+            {!isPublic ? (
+              <Button
+                variant={searchOpen || query ? "secondary" : "ghost"}
+                size="icon"
+                className="size-8"
+                aria-label="Search"
+                onClick={() => setSearchOpen((v) => !v)}
+              >
+                <Search className="size-4" />
+              </Button>
+            ) : null}
+            <Button
+              variant={uploadOpen || uploadBusy ? "secondary" : "ghost"}
+              size="icon"
+              className="size-8"
+              aria-label="Upload PDFs"
+              onClick={() => setUploadOpen((v) => !v)}
+            >
+              <Upload className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label="Share"
+              onClick={() =>
+                setShare({
+                  type: listing.folder ? "FOLDER" : "DATA_ROOM",
+                  id: listing.folder?.id ?? listing.dataRoom.id,
+                })
+              }
+            >
+              <Share2 className="size-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8"
+              aria-label="New folder"
+              onClick={() => setCreateOpen(true)}
+            >
+              <Plus className="size-4" />
+            </Button>
+          </div>
+          ) : (
           <div className="flex gap-2">
             <Button
               variant="outline"
@@ -160,16 +213,37 @@ export function Explorer({
               <Plus className="size-4" /> New folder
             </Button>
           </div>
+          )
         ) : (
-          <p className="text-sm text-muted-foreground">View only</p>
+          <div className="flex items-center gap-1">
+            {!isPublic && compact ? (
+              <Button
+                variant={searchOpen || query ? "secondary" : "ghost"}
+                size="icon"
+                className="size-8"
+                aria-label="Search"
+                onClick={() => setSearchOpen((v) => !v)}
+              >
+                <Search className="size-4" />
+              </Button>
+            ) : null}
+            <p className="text-sm text-muted-foreground">View only</p>
+          </div>
         )}
       </div>
 
-      {!isPublic ? (
+      {!isPublic && (!compact || searchOpen || query.trim()) ? (
         <Input
+          autoFocus={compact}
           placeholder="Search files and folders by name"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") {
+              setQuery("");
+              setSearchOpen(false);
+            }
+          }}
         />
       ) : null}
 
@@ -199,11 +273,13 @@ export function Explorer({
         </div>
       ) : null}
 
-      {canEdit ? (
+      {canEdit && (!compact || uploadOpen || uploadBusy) ? (
         <UploadDropzone
+          compact={compact}
           dataRoomId={listing.dataRoom.id}
           folderId={listing.folder?.id ?? null}
           onUploaded={() => void load()}
+          onBusyChange={setUploadBusy}
         />
       ) : null}
 

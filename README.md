@@ -265,10 +265,10 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 **AI usage -- partially.**
 *My part -- partially.*
 
-7. UX Optimizing. (in process)
+7. UX Optimizing.
 
 **AI usage -- partially.**
-*My part -- partially.*
+*My part -- partially, ahead of process, anlizing result and code changes. E.g. sometimes AI doesn't understand, where to place element on page, so better to personally change the code.*
 
 8. Thinking part personal double check and Deliverables, optimization (in process)
 

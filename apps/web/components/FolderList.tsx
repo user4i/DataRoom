@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { useDensity } from "@/lib/density";
 
 export function FolderList({
   folders,
@@ -25,13 +26,14 @@ export function FolderList({
   onShare: (folder: FolderDto) => void;
   onDelete: (folder: FolderDto) => void;
 }) {
+  const compact = useDensity().density === "compact";
   if (folders.length === 0) return null;
   return (
     <div className="space-y-1">
       <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Folders</p>
       <ul className="divide-y rounded-lg border bg-card">
         {folders.map((folder) => (
-          <li key={folder.id} className="flex items-center gap-3 px-3 py-2.5">
+          <li key={folder.id} className={`flex items-center gap-3 px-3 ${compact ? "py-1.5" : "py-2.5"}`}>
             <button type="button" className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpen(folder)}>
               <Folder className="size-5 shrink-0 text-sky-700" />
               <div className="min-w-0">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api, API_URL, ApiError } from "@/lib/api";
 import { Progress } from "@/components/ui/progress";
@@ -19,10 +19,14 @@ export function UploadDropzone({
   dataRoomId,
   folderId,
   onUploaded,
+  compact = false,
+  onBusyChange,
 }: {
   dataRoomId: string;
   folderId: string | null;
   onUploaded: (file: FileDto) => void;
+  compact?: boolean;
+  onBusyChange?: (busy: boolean) => void;
 }) {
   const [items, setItems] = useState<Item[]>([]);
   const [drag, setDrag] = useState(false);
@@ -80,6 +84,11 @@ export function UploadDropzone({
     next.forEach((item) => void uploadOne(item));
   };
 
+  const busy = items.some((i) => i.status === "queued" || i.status === "uploading");
+  useEffect(() => {
+    onBusyChange?.(busy);
+  }, [busy, onBusyChange]);
+
   return (
     <div className="space-y-3">
       <label
@@ -93,9 +102,9 @@ export function UploadDropzone({
           setDrag(false);
           if (e.dataTransfer.files.length) queueFiles(e.dataTransfer.files);
         }}
-        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed px-6 py-8 text-center transition ${
-          drag ? "border-primary bg-accent" : "bg-card hover:bg-accent/40"
-        }`}
+        className={`flex cursor-pointer flex-col items-center justify-center rounded-xl border border-dashed text-center transition ${
+          compact ? "px-4 py-4" : "px-6 py-8"
+        } ${drag ? "border-primary bg-accent" : "bg-card hover:bg-accent/40"}`}
       >
         <p className="font-medium">Drop PDFs here or click to upload</p>
         <p className="mt-1 text-sm text-muted-foreground">Multiple files supported · PDF only · max 50 MB each</p>

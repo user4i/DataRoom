@@ -2,6 +2,7 @@
 
 import { FileText } from "lucide-react";
 import type { FileDto } from "@dataroom/shared";
+import { useDensity } from "@/lib/density";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +29,10 @@ export function FileRow({
   onShare: (file: FileDto) => void;
   onDelete: (file: FileDto) => void;
 }) {
+  const { density } = useDensity();
+  const compact = density === "compact";
   return (
-    <li className="flex items-center gap-3 px-3 py-2.5">
+    <li className={`flex items-center gap-3 px-3 ${compact ? "py-1.5" : "py-2.5"}`}>
       <button type="button" className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpen(file)}>
         <FileText className="size-5 shrink-0 text-red-700" />
         <div className="min-w-0">
