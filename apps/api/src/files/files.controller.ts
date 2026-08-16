@@ -19,6 +19,16 @@ export class FilesController {
     return this.files.confirm(user.id, dto);
   }
 
+  @Get('data-rooms/:id/file-conflict')
+  nameConflict(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Query('name') name = '',
+    @Query('folderId') folderId?: string,
+  ) {
+    return this.files.nameConflict(user.id, id, folderId || null, name);
+  }
+
   @Get('data-rooms/:id/search')
   search(
     @CurrentUser() user: RequestUser,

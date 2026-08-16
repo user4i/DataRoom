@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -37,6 +38,7 @@ export class FilesService {
     folderId: string | null,
     originalName: string,
     excludeId?: string,
+    extraTaken: string[] = [],
   ) {
     const existing = await this.prisma.file.findMany({
       where: {
@@ -46,7 +48,10 @@ export class FilesService {
       },
       select: { name: true },
     });
-    const names = new Set(existing.map((f) => f.name.toLowerCase()));
+    const names = new Set([
+      ...existing.map((f) => f.name.toLowerCase()),
+      ...extraTaken.map((n) => n.toLowerCase()),
+    ]);
     if (!names.has(originalName.toLowerCase())) return originalName;
     const dot = originalName.lastIndexOf('.');
     const stem = dot > 0 ? originalName.slice(0, dot) : originalName;
@@ -54,6 +59,28 @@ export class FilesService {
     let i = 1;
     while (names.has(`${stem} (${i})${ext}`.toLowerCase())) i += 1;
     return `${stem} (${i})${ext}`;
+  }
+
+  async nameConflict(userId: string, dataRoomId: string, folderId: string | null, name: string) {
+    await this.access.assertCanEdit(userId, dataRoomId);
+    const trimmed = name.trim();
+    if (!trimmed) throw new BadRequestException('File name is required');
+    const existing = await this.prisma.file.findFirst({
+      where: {
+        dataRoomId,
+        folderId,
+        name: { equals: trimmed, mode: 'insensitive' },
+      },
+    });
+    const suggestedNewName = await this.uniqueName(dataRoomId, folderId, trimmed);
+    const suggestedOldName = await this.uniqueName(dataRoomId, folderId, trimmed, undefined, [
+      suggestedNewName,
+    ]);
+    return {
+      existing: existing ? serializeFile(existing) : null,
+      suggestedNewName,
+      suggestedOldName,
+    };
   }
 
   async presign(userId: string, dto: PresignDto) {
@@ -86,16 +113,35 @@ export class FilesService {
 
     const name = dto.name.trim();
     const existing = await this.prisma.file.findFirst({
-      where: { dataRoomId: dto.dataRoomId, folderId, name },
+      where: {
+        dataRoomId: dto.dataRoomId,
+        folderId,
+        name: { equals: name, mode: 'insensitive' },
+      },
     });
     if (existing) {
-      return this.addVersion(userId, existing.id, dto.storageKey, BigInt(dto.size));
+      if (dto.conflict === 'replace') {
+        return this.addVersion(userId, existing.id, dto.storageKey, BigInt(dto.size));
+      }
+      if (dto.conflict === 'keep_both') {
+        return this.createFile(dto.dataRoomId, folderId, await this.uniqueName(dto.dataRoomId, folderId, name), dto);
+      }
+      throw new ConflictException('A file with this name already exists here');
     }
+    return this.createFile(dto.dataRoomId, folderId, name, dto);
+  }
+
+  private async createFile(
+    dataRoomId: string,
+    folderId: string | null,
+    name: string,
+    dto: ConfirmFileDto,
+  ) {
     try {
       const file = await this.prisma.$transaction(async (tx) => {
         const created = await tx.file.create({
           data: {
-            dataRoomId: dto.dataRoomId,
+            dataRoomId,
             folderId,
             name,
             storageKey: dto.storageKey,

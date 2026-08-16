@@ -1,5 +1,6 @@
 import { Type } from 'class-transformer';
 import {
+  IsIn,
   IsInt,
   IsOptional,
   IsString,
@@ -57,6 +58,10 @@ export class ConfirmFileDto {
 
   @IsString()
   mimeType!: string;
+
+  @IsOptional()
+  @IsIn(['replace', 'keep_both'])
+  conflict?: 'replace' | 'keep_both';
 }
 
 export class RenameFileDto {
