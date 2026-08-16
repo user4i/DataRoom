@@ -10,7 +10,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { rethrowUnique } from '../common/prisma-errors';
 import { ancestorIdsFromPath, serializeFile } from '../common/serialize';
-import { ConfirmFileDto, PresignDto } from './dto/file.dto';
+import { ConfirmFileDto, MoveFileDto, PresignDto } from './dto/file.dto';
 
 const PDF = 'application/pdf';
 
@@ -61,7 +61,13 @@ export class FilesService {
     return `${stem} (${i})${ext}`;
   }
 
-  async nameConflict(userId: string, dataRoomId: string, folderId: string | null, name: string) {
+  async nameConflict(
+    userId: string,
+    dataRoomId: string,
+    folderId: string | null,
+    name: string,
+    excludeId?: string,
+  ) {
     await this.access.assertCanEdit(userId, dataRoomId);
     const trimmed = name.trim();
     if (!trimmed) throw new BadRequestException('Потрібна назва файлу');
@@ -70,10 +76,11 @@ export class FilesService {
         dataRoomId,
         folderId,
         name: { equals: trimmed, mode: 'insensitive' },
+        ...(excludeId ? { id: { not: excludeId } } : {}),
       },
     });
-    const suggestedNewName = await this.uniqueName(dataRoomId, folderId, trimmed);
-    const suggestedOldName = await this.uniqueName(dataRoomId, folderId, trimmed, undefined, [
+    const suggestedNewName = await this.uniqueName(dataRoomId, folderId, trimmed, excludeId);
+    const suggestedOldName = await this.uniqueName(dataRoomId, folderId, trimmed, excludeId, [
       suggestedNewName,
     ]);
     return {
@@ -255,6 +262,73 @@ export class FilesService {
     }
 
     return serializeFile(file);
+  }
+
+  async move(userId: string, id: string, dto: MoveFileDto) {
+    const file = await this.access.getFileOrThrow(id);
+    await this.access.assertCanEdit(userId, file.dataRoomId);
+    const nextFolderId = dto.folderId ?? null;
+    if (nextFolderId) {
+      const dest = await this.access.getFolderOrThrow(nextFolderId);
+      if (dest.dataRoomId !== file.dataRoomId) {
+        throw new NotFoundException('Папку призначення не знайдено');
+      }
+    }
+
+    const nextName = (dto.name ?? file.name).trim();
+    const existing = await this.prisma.file.findFirst({
+      where: {
+        dataRoomId: file.dataRoomId,
+        folderId: nextFolderId,
+        name: { equals: nextName, mode: 'insensitive' },
+        id: { not: id },
+      },
+    });
+
+    if (existing) {
+      if (dto.conflict === 'replace') {
+        return this.replaceOnMove(userId, file, existing);
+      }
+      if (dto.conflict === 'keep_both') {
+        const unique = await this.uniqueName(file.dataRoomId, nextFolderId, file.name, id);
+        return this.update(userId, id, { folderId: nextFolderId, name: unique });
+      }
+      throw new ConflictException('Файл із такою назвою вже існує в призначенні');
+    }
+
+    return this.update(userId, id, {
+      folderId: nextFolderId,
+      ...(dto.name ? { name: nextName } : {}),
+    });
+  }
+
+  private async replaceOnMove(
+    userId: string,
+    source: { id: string; folderId: string | null; storageKey: string; size: bigint },
+    dest: { id: string },
+  ) {
+    if (source.id === dest.id) {
+      return serializeFile(await this.access.getFileOrThrow(source.id));
+    }
+    const replaced = await this.addVersion(userId, dest.id, source.storageKey, source.size);
+    const versions = await this.prisma.fileVersion.findMany({ where: { fileId: source.id } });
+    await this.prisma.$transaction(async (tx) => {
+      if (source.folderId) {
+        const from = await tx.folder.findUnique({ where: { id: source.folderId } });
+        if (from) {
+          await tx.folder.updateMany({
+            where: { id: { in: ancestorIdsFromPath(from.path) } },
+            data: {
+              itemCount: { decrement: 1 },
+              totalSize: { decrement: source.size },
+            },
+          });
+        }
+      }
+      await tx.file.delete({ where: { id: source.id } });
+    });
+    await Promise.all(versions.map((version) => this.storage.deleteObject(version.storageKey)));
+    return replaced;
   }
 
   async remove(userId: string, id: string) {

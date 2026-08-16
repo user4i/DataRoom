@@ -33,9 +33,11 @@ function withPdf(name: string) {
 export function UploadConflictDialog({
   conflict,
   onResolve,
+  mode = "upload",
 }: {
   conflict: NameConflict | null;
   onResolve: (decision: ConflictDecision) => void;
+  mode?: "upload" | "move";
 }) {
   const [action, setAction] = useState<ConflictAction>("replace");
   const [newName, setNewName] = useState("");
@@ -48,12 +50,35 @@ export function UploadConflictDialog({
     setOldName(conflict.suggestedNewName);
   }, [conflict]);
 
+  const moving = mode === "move";
   const options: { id: ConflictAction; title: string; hint: string }[] = conflict
     ? [
-        { id: "replace", title: "Замінити наявний файл", hint: "Поточний файл збережеться як попередня версія." },
-        { id: "keep_both", title: "Залишити обидва", hint: `Завантажити новий файл як «${conflict.suggestedNewName}».` },
-        { id: "rename_new", title: "Перейменувати новий файл", hint: "Оберіть назву для файлу, який завантажуєте." },
-        { id: "rename_old", title: "Перейменувати наявний файл", hint: "Звільнити оригінальну назву для нового завантаження." },
+        {
+          id: "replace",
+          title: "Замінити наявний файл",
+          hint: "Поточний файл збережеться як попередня версія.",
+        },
+        {
+          id: "keep_both",
+          title: "Залишити обидва",
+          hint: moving
+            ? `Перемістити файл як «${conflict.suggestedNewName}».`
+            : `Завантажити новий файл як «${conflict.suggestedNewName}».`,
+        },
+        {
+          id: "rename_new",
+          title: moving ? "Перейменувати файл, який переміщуєте" : "Перейменувати новий файл",
+          hint: moving
+            ? "Оберіть назву для файлу в папці призначення."
+            : "Оберіть назву для файлу, який завантажуєте.",
+        },
+        {
+          id: "rename_old",
+          title: "Перейменувати наявний файл",
+          hint: moving
+            ? "Звільнити оригінальну назву для файлу, який переміщуєте."
+            : "Звільнити оригінальну назву для нового завантаження.",
+        },
         { id: "rename_both", title: "Перейменувати обидва файли", hint: "Дайте кожному файлу нову назву." },
       ]
     : [];
@@ -80,7 +105,8 @@ export function UploadConflictDialog({
         <DialogHeader>
           <DialogTitle>Файл уже існує</DialogTitle>
           <DialogDescription>
-            Файл із назвою «{conflict?.incomingName}» уже є в цій папці. Оберіть, що зробити з новим завантаженням.
+            Файл із назвою «{conflict?.incomingName}» уже є в цій папці. Оберіть, що зробити
+            {moving ? " з переміщенням." : " з новим завантаженням."}
           </DialogDescription>
         </DialogHeader>
         <fieldset className="space-y-2">
@@ -91,7 +117,7 @@ export function UploadConflictDialog({
             >
               <input
                 type="radio"
-                name="upload-conflict"
+                name="file-name-conflict"
                 className="mt-1"
                 checked={action === option.id}
                 onChange={() => {
@@ -114,7 +140,7 @@ export function UploadConflictDialog({
         </fieldset>
         {action === "rename_new" || action === "rename_both" ? (
           <div className="space-y-1.5">
-            <Label htmlFor="conflict-new-name">Назва нового файлу</Label>
+            <Label htmlFor="conflict-new-name">{moving ? "Назва файлу, який переміщуєте" : "Назва нового файлу"}</Label>
             <Input id="conflict-new-name" value={newName} onChange={(e) => setNewName(e.target.value)} />
           </div>
         ) : null}
@@ -130,7 +156,7 @@ export function UploadConflictDialog({
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onResolve({ action: "skip" })}>
-            Пропустити
+            {moving ? "Скасувати" : "Пропустити"}
           </Button>
           <Button disabled={!continueEnabled} onClick={submit}>
             Продовжити

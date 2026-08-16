@@ -25,8 +25,9 @@ export class FilesController {
     @Param('id') id: string,
     @Query('name') name = '',
     @Query('folderId') folderId?: string,
+    @Query('excludeId') excludeId?: string,
   ) {
-    return this.files.nameConflict(user.id, id, folderId || null, name);
+    return this.files.nameConflict(user.id, id, folderId || null, name, excludeId);
   }
 
   @Get('data-rooms/:id/search')
@@ -72,7 +73,7 @@ export class FilesController {
     @Param('id') id: string,
     @Body() dto: MoveFileDto,
   ) {
-    return this.files.update(user.id, id, { folderId: dto.folderId });
+    return this.files.move(user.id, id, dto);
   }
 
   @Delete('files/:id')

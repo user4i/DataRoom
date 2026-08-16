@@ -75,4 +75,14 @@ export class MoveFileDto {
   @ValidateIf((_, value) => value !== null)
   @IsUUID()
   folderId!: string | null;
+
+  @IsOptional()
+  @IsIn(['replace', 'keep_both'])
+  conflict?: 'replace' | 'keep_both';
+
+  @IsOptional()
+  @IsString()
+  @MinLength(1)
+  @MaxLength(255)
+  name?: string;
 }

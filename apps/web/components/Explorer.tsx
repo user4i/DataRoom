@@ -22,6 +22,11 @@ import { DeletePreviewDialog } from "@/components/DeletePreviewDialog";
 import { EmptyState } from "@/components/empty-state";
 import { useDensityFlags } from "@/lib/density";
 import { detailsFromFile, detailsFromFolder, ItemDetailsDialog, type ItemDetails } from "@/components/item-details";
+import {
+  UploadConflictDialog,
+  type ConflictDecision,
+  type NameConflict,
+} from "@/components/upload-conflict-dialog";
 
 export function Explorer({
   roomId,
@@ -41,6 +46,8 @@ export function Explorer({
   const [renameTarget, setRenameTarget] = useState<{ type: "folder" | "file"; id: string; name: string } | null>(null);
   const [share, setShare] = useState<{ type: ResourceType; id: string } | null>(null);
   const [moveFile, setMoveFile] = useState<FileDto | null>(null);
+  const [pendingMove, setPendingMove] = useState<{ fileId: string; folderId: string | null } | null>(null);
+  const [moveConflict, setMoveConflict] = useState<NameConflict | null>(null);
   const [deletePreview, setDeletePreview] = useState<DeletionPreviewDto | null>(null);
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
@@ -127,6 +134,48 @@ export function Explorer({
     startNavigation();
     if (publicToken) router.push(`/s/${publicToken}/files/${file.id}`);
     else router.push(`/rooms/${file.dataRoomId}/files/${file.id}`);
+  };
+
+  const resolveMoveConflict = async (decision: ConflictDecision) => {
+    const pending = pendingMove;
+    const conflict = moveConflict;
+    setMoveConflict(null);
+    setPendingMove(null);
+    setMoveFile(null);
+    if (!pending || !conflict || decision.action === "skip") return;
+    try {
+      if (decision.action === "rename_old" || decision.action === "rename_both") {
+        await api(`/files/${conflict.existing.id}`, {
+          method: "PATCH",
+          body: JSON.stringify({ name: decision.oldName }),
+        });
+      }
+      if (decision.action === "replace") {
+        await api(`/files/${pending.fileId}/move`, {
+          method: "POST",
+          body: JSON.stringify({ folderId: pending.folderId, conflict: "replace" }),
+        });
+      } else if (decision.action === "keep_both") {
+        await api(`/files/${pending.fileId}/move`, {
+          method: "POST",
+          body: JSON.stringify({ folderId: pending.folderId, conflict: "keep_both" }),
+        });
+      } else if (decision.action === "rename_new" || decision.action === "rename_both") {
+        await api(`/files/${pending.fileId}/move`, {
+          method: "POST",
+          body: JSON.stringify({ folderId: pending.folderId, name: decision.newName }),
+        });
+      } else {
+        await api(`/files/${pending.fileId}/move`, {
+          method: "POST",
+          body: JSON.stringify({ folderId: pending.folderId }),
+        });
+      }
+      toast.success("Файл переміщено");
+      await load();
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : "Не вдалося перемістити файл");
+    }
   };
 
   if (error) {
@@ -456,19 +505,43 @@ export function Explorer({
         />
       ) : null}
 
-      {moveFile ? (
+      {moveFile && !moveConflict ? (
         <MoveFileDialog
           open
           onOpenChange={(v) => !v && setMoveFile(null)}
           dataRoomId={listing.dataRoom.id}
           dataRoomName={listing.dataRoom.name}
           onMove={async (dest) => {
-            await api(`/files/${moveFile.id}/move`, { method: "POST", body: JSON.stringify({ folderId: dest }) });
-            toast.success("Файл переміщено");
-            await load();
+            const query = new URLSearchParams({ name: moveFile.name, excludeId: moveFile.id });
+            if (dest) query.set("folderId", dest);
+            const check = await api<{
+              existing: FileDto | null;
+              suggestedNewName: string;
+              suggestedOldName: string;
+            }>(`/data-rooms/${listing.dataRoom.id}/file-conflict?${query.toString()}`);
+            if (!check.existing) {
+              await api(`/files/${moveFile.id}/move`, { method: "POST", body: JSON.stringify({ folderId: dest }) });
+              toast.success("Файл переміщено");
+              setMoveFile(null);
+              await load();
+              return;
+            }
+            setPendingMove({ fileId: moveFile.id, folderId: dest });
+            setMoveConflict({
+              existing: check.existing,
+              suggestedNewName: check.suggestedNewName,
+              suggestedOldName: check.suggestedOldName,
+              incomingName: moveFile.name,
+            });
           }}
         />
       ) : null}
+
+      <UploadConflictDialog
+        mode="move"
+        conflict={moveConflict}
+        onResolve={(decision) => void resolveMoveConflict(decision)}
+      />
 
       <DeletePreviewDialog
         open={Boolean(deleteFolderId)}
