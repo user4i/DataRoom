@@ -10,12 +10,12 @@ const DensityContext = createContext<{
   density: Density;
   setDensity: (value: Density) => void;
 }>({
-  density: "compact",
+  density: "minimal",
   setDensity: () => undefined,
 });
 
 export function DensityProvider({ children }: { children: React.ReactNode }) {
-  const [density, setDensityState] = useState<Density>("compact");
+  const [density, setDensityState] = useState<Density>("minimal");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
