@@ -59,23 +59,26 @@ export function RouteProgress() {
   }, [pathname]);
 
   const height = 2 + intensity * 2;
-  const opacity = state.visible ? 0.22 + intensity * 0.58 : 0;
+  const opacity = state.visible ? 0.5 + intensity * 0.5 : 0;
+  const glow = 6 + intensity * 18;
+  const glowAlpha = 0.28 + intensity * 0.5;
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 top-0 z-[100] h-1 overflow-hidden"
+      className="pointer-events-none fixed inset-x-0 top-0 z-[100] overflow-visible"
       aria-hidden
       role="presentation"
     >
       <div
-        className="origin-left bg-foreground"
+        className="origin-left bg-sky-400"
         style={{
           width: `${Math.round(state.value * 1000) / 10}%`,
           height: `${height}px`,
           opacity,
+          boxShadow: state.visible ? `0 0 ${glow}px ${glow / 4}px rgb(56 189 248 / ${glowAlpha})` : undefined,
           transition: state.visible
-            ? "width 280ms ease-out, opacity 180ms linear, height 280ms ease-out"
-            : "width 0ms, opacity 180ms linear, height 180ms ease-out",
+            ? "width 280ms ease-out, opacity 180ms linear, height 280ms ease-out, box-shadow 280ms ease-out"
+            : "width 0ms, opacity 180ms linear, height 180ms ease-out, box-shadow 180ms ease-out",
         }}
       />
     </div>
