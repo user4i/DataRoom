@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { AccessModule } from './access/access.module';
 import { StorageModule } from './storage/storage.module';
 import { DataRoomsModule } from './data-rooms/data-rooms.module';
+import { FoldersModule } from './folders/folders.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { DataRoomsModule } from './data-rooms/data-rooms.module';
     StorageModule,
     AuthModule,
     DataRoomsModule,
+    FoldersModule,
   ],
   controllers: [HealthController],
 })
