@@ -50,3 +50,4 @@ Thumbs.db
 # Assignment spec (not part of the product)
 *.pdf
 *.docx
+.neon

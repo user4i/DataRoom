@@ -184,7 +184,7 @@ Production deploys are triggered by GitHub Actions on push to `main` (Vercel CLI
 
 Create an **empty** Vercel project (no Git integration). The workflow deploys from the **monorepo root** (`npx vercel deploy --prod --yes`, no `--cwd`) so workspace install can see the lockfile. Set the Vercel project Root Directory to `apps/web`. Do **not** also pass `--cwd apps/web` — Root Directory and `--cwd` must not both be `apps/web`.
 
-Env on the Vercel project: `NEXT_PUBLIC_API_URL=https://<your-api-host>`
+`NEXT_PUBLIC_API_URL` is passed at deploy time from a GitHub Actions secret (inlined into the Next.js client bundle). Hobby usually has Settings → Environment Variables for Production; if the UI requires Pro, skip the dashboard and use the GitHub secret instead.
 
 See **CI/CD** below for the GitHub secrets.
 
@@ -213,6 +213,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 | `VERCEL_TOKEN` | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) — same account that owns the project |
 | `VERCEL_ORG_ID` | yes (web) | Team ID of the project's team (Hobby: **Your ID** on the account/tokens page) |
 | `VERCEL_PROJECT_ID` | yes (web) | Vercel project → Settings → General |
+| `NEXT_PUBLIC_API_URL` | yes (web) | Public Render URL of the API, **without** `/health` (e.g. `https://<service>.onrender.com`) |
 | `RENDER_DEPLOY_HOOK` | yes (API) | Render service → Settings → Deploy Hook |
 | `DATABASE_URL` | optional | Neon connection string; the migrate job no-ops when this is unset |
 
