@@ -1,0 +1,96 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: production-deploy
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    name: Neon migrate
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - name: Skip when DATABASE_URL is unset
+        if: env.DATABASE_URL == ''
+        run: echo "DATABASE_URL secret not set; skipping Prisma migrate."
+
+      - name: Checkout
+        if: env.DATABASE_URL != ''
+        uses: actions/checkout@v4
+
+      # Prefer .nvmrc (26.7.0). Fall back to Node 22 LTS if 26.7.0 is unavailable.
+      - name: Resolve Node.js version
+        if: env.DATABASE_URL != ''
+        id: node
+        shell: bash
+        run: |
+          preferred="26.7.0"
+          fallback="22"
+          url="https://nodejs.org/dist/v${preferred}/node-v${preferred}-linux-x64.tar.xz"
+          if curl -fsI "$url" >/dev/null; then
+            echo "version=${preferred}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${fallback}" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Set up Node.js
+        if: env.DATABASE_URL != ''
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node.outputs.version }}
+          cache: npm
+
+      - name: Install
+        if: env.DATABASE_URL != ''
+        run: npm ci
+
+      - name: Prisma migrate deploy
+        if: env.DATABASE_URL != ''
+        run: npm run db:deploy
+
+  deploy-web:
+    name: Deploy web (Vercel)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    env:
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Vercel CLI
+        run: npm install --global vercel@latest
+        working-directory: .
+
+      - name: Pull Vercel environment
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+
+  deploy-api:
+    name: Deploy API (Render)
+    needs: [migrate]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy hook
+        env:
+          RENDER_DEPLOY_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK }}
+        run: |
+          if [ -z "$RENDER_DEPLOY_HOOK" ]; then
+            echo "RENDER_DEPLOY_HOOK is not set. Add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          curl -fsS -X POST "$RENDER_DEPLOY_HOOK"

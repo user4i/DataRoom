@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build API and web
+    runs-on: ubuntu-latest
+    env:
+      # prisma generate reads DATABASE_URL from schema; CI does not connect.
+      DATABASE_URL: postgresql://ci:ci@127.0.0.1:5432/ci
+      NEXT_PUBLIC_API_URL: http://localhost:3001
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # Prefer .nvmrc (26.7.0). If that Current release is missing from
+      # nodejs.org / the runner, fall back to Node 22 LTS so CI still runs.
+      - name: Resolve Node.js version
+        id: node
+        shell: bash
+        run: |
+          preferred="26.7.0"
+          fallback="22"
+          url="https://nodejs.org/dist/v${preferred}/node-v${preferred}-linux-x64.tar.xz"
+          if curl -fsI "$url" >/dev/null; then
+            echo "version=${preferred}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=${fallback}" >> "$GITHUB_OUTPUT"
+          fi
+          echo "Resolved Node.js ${preferred} or fallback ${fallback}"
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ steps.node.outputs.version }}
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build API
+        run: npm run build:api
+
+      - name: Build web
+        run: npm run build:web

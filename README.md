@@ -180,20 +180,41 @@ Node version: `26.7.0` (see `.nvmrc` / `engines`).
 
 ### Web (Vercel)
 
-Import the GitHub repo. Set **Root Directory** to `apps/web`.
+Production deploys are triggered by GitHub Actions on push to `main` (Vercel CLI + token). Do **not** connect the Vercel GitHub App.
 
-Env: `NEXT_PUBLIC_API_URL=https://<your-api-host>`
+Create an **empty** Vercel project (no Git integration). The workflow runs in `apps/web`, so leave the project Root Directory as the app itself. `apps/web/vercel.json` installs from the monorepo root (`npm ci`) and builds with `npm run build:web`.
 
-Install command: from repo root `npm install` (workspaces). If Vercel uses `apps/web` as root, set Install to `cd ../.. && npm install` or keep the monorepo root as the Vercel project root with:
+Env on the Vercel project: `NEXT_PUBLIC_API_URL=https://<your-api-host>`
 
-- Framework: Next.js
-- Root directory: `apps/web`
+See **CI/CD** below for the GitHub secrets.
 
 ### What you must do (no cloud tokens in this environment)
 
-This workspace does not have Neon / Render / Vercel / R2 account tokens. After you create those services, paste the public URLs into the **Live URLs** section above.
+This workspace does not have Neon / Render / Vercel / R2 account tokens. After you create those services and add the Actions secrets, paste the public URLs into the **Live URLs** section above.
 
 Smoke checklist (incognito): register → create room → nested folder → upload PDF → rename/move → public link in a private window → share to a second account → revoke → delete folder with warning.
+
+## CI/CD (GitHub Actions)
+
+Push and pull requests run **CI** (`.github/workflows/ci.yml`): `npm ci`, then build `apps/api` and `apps/web`. Node **26.7.0** when that release is available to the runner, otherwise **22**.
+
+Push to `main` runs **CD** (`.github/workflows/deploy.yml`):
+
+1. Optional Prisma migrate against Neon when `DATABASE_URL` is set (skipped if the secret is missing).
+2. Web → Vercel from `apps/web` (`vercel pull` / `vercel build --prod` / `vercel deploy --prebuilt --prod`).
+3. API → Render via a Deploy Hook. `render.yaml` in the repo root is the service blueprint (create the web service once in the Render dashboard).
+
+The first production deploy runs only after the secrets below exist, an empty Vercel project is created (so `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` are known), and the Render service exists with a Deploy Hook.
+
+**GitHub → Settings → Secrets and variables → Actions**
+
+| Secret | Required | Where to get it |
+|---|---|---|
+| `VERCEL_TOKEN` | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) |
+| `VERCEL_ORG_ID` | yes (web) | Vercel project → Settings, or `.vercel/project.json` after `vercel link` in `apps/web` |
+| `VERCEL_PROJECT_ID` | yes (web) | same as org id |
+| `RENDER_DEPLOY_HOOK` | yes (API) | Render service → Settings → Deploy Hook |
+| `DATABASE_URL` | optional | Neon connection string; the migrate job no-ops when this is unset |
 
 ## Design decisions
 
