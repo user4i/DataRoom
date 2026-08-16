@@ -182,7 +182,7 @@ Node version: `26.7.0` (see `.nvmrc` / `engines`).
 
 Production deploys are triggered by GitHub Actions on push to `main` (Vercel CLI + token). Do **not** connect the Vercel GitHub App.
 
-Create an **empty** Vercel project (no Git integration). The workflow runs in `apps/web`, so leave the project Root Directory as the app itself. `apps/web/vercel.json` installs from the monorepo root (`npm ci`) and builds with `npm run build:web`.
+Create an **empty** Vercel project (no Git integration). The workflow deploys from the **monorepo root** (`npx vercel deploy --prod --yes`) so workspace install can see the lockfile. Set the Vercel project Root Directory to `apps/web`.
 
 Env on the Vercel project: `NEXT_PUBLIC_API_URL=https://<your-api-host>`
 
@@ -201,7 +201,7 @@ Push and pull requests run **CI** (`.github/workflows/ci.yml`): `npm ci`, then b
 Push to `main` runs **CD** (`.github/workflows/deploy.yml`):
 
 1. Optional Prisma migrate against Neon when `DATABASE_URL` is set (skipped if the secret is missing).
-2. Web → Vercel from `apps/web` (`vercel pull` / `vercel build --prod` / `vercel deploy --prebuilt --prod`).
+2. Web → Vercel from the repo root (`npx vercel deploy --prod --yes`, using `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`).
 3. API → Render via a Deploy Hook. `render.yaml` in the repo root is the service blueprint (create the web service once in the Render dashboard).
 
 The first production deploy runs only after the secrets below exist, an empty Vercel project is created (so `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` are known), and the Render service exists with a Deploy Hook.
@@ -210,9 +210,9 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 | Secret | Required | Where to get it |
 |---|---|---|
-| `VERCEL_TOKEN` | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) |
-| `VERCEL_ORG_ID` | yes (web) | Vercel project → Settings, or `.vercel/project.json` after `vercel link` in `apps/web` |
-| `VERCEL_PROJECT_ID` | yes (web) | same as org id |
+| `VERCEL_TOKEN` | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) — same account that owns the project |
+| `VERCEL_ORG_ID` | yes (web) | Team ID of the project's team (Hobby: **Your ID** on the account/tokens page) |
+| `VERCEL_PROJECT_ID` | yes (web) | Vercel project → Settings → General |
 | `RENDER_DEPLOY_HOOK` | yes (API) | Render service → Settings → Deploy Hook |
 | `DATABASE_URL` | optional | Neon connection string; the migrate job no-ops when this is unset |
 
