@@ -237,3 +237,42 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 ## Where and how AI was used
 
+1. Base project setup - 
+
+**AI usage -- step-by-step plan by task**
+*My part -- General quick analizing, creating Gighub Project, informig AI that node versions are organized with nvm (Node Version Manager)*
+
+2. Base project setup - developed
+
+**AI usage -- fully, commits**
+*My part -- analyzing the process*
+
+3. Local and remote deploy - preparation
+
+**AI usage -- insturctions and partial automation**
+*My part -- Some technical moments. I changed plan with direct uploading files to Vercel/Render/Neon by Github CI/CD (Actions).*
+
+5. Testing, some small corrections, project clearing, README changes - 
+
+**AI usage -- just analything, commits**
+*My part -- most.*
+
+6. Double checking base version by task details. (in process)
+
+**AI usage -- partially.**
+*My part -- partially.*
+
+7. UX Optimizing. (in process)
+
+**AI usage -- partially.**
+*My part -- partially.*
+
+8. Thinking part personal check and Deliverables (in process)
+
+9. Extra credit (in process)
+
+## Time spending
+
+~1 hour = Plan + Base Development
+~1 hour = Deploy
+~1 hour = Testing, code clearing, my part of README
