@@ -45,6 +45,20 @@ export function FileViewer({
       });
   }, [fileId, publicToken]);
 
+  const parentFolderId = data?.file.folderId;
+  const backHref = publicToken
+    ? parentFolderId
+      ? `/s/${publicToken}/f/${parentFolderId}`
+      : `/s/${publicToken}`
+    : parentFolderId
+      ? `/rooms/${roomId}/f/${parentFolderId}`
+      : `/rooms/${roomId}`;
+  const backLabel = publicToken
+    ? "Back to shared folder"
+    : parentFolderId
+      ? "Back to folder"
+      : "Back to room";
+
   return (
     <div className="min-h-screen">
       <AppHeader />
@@ -52,9 +66,7 @@ export function FileViewer({
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <Button asChild variant="outline" size="sm">
-              <Link href={publicToken ? `/s/${publicToken}` : `/rooms/${roomId}`}>
-                {publicToken ? "Back to shared folder" : "Back to room"}
-              </Link>
+              <Link href={backHref}>{backLabel}</Link>
             </Button>
             <h1 className="mt-3 text-xl font-semibold">{data?.file.name ?? "PDF"}</h1>
           </div>
