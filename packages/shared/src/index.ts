@@ -8,6 +8,12 @@ export type AuthUser = {
   name: string;
 };
 
+export type OwnerDto = {
+  id: string;
+  name: string;
+  email: string;
+};
+
 export type DataRoomDto = {
   id: string;
   name: string;
@@ -15,7 +21,7 @@ export type DataRoomDto = {
   createdAt: string;
   updatedAt: string;
   access: "OWNER" | "VIEWER";
-  owner?: { id: string; name: string; email: string };
+  owner?: OwnerDto;
 };
 
 export type FolderDto = {
@@ -28,6 +34,7 @@ export type FolderDto = {
   itemCount: number;
   createdAt: string;
   updatedAt: string;
+  owner?: OwnerDto;
 };
 
 export type FileDto = {
@@ -39,6 +46,8 @@ export type FileDto = {
   mimeType: string;
   createdAt: string;
   updatedAt: string;
+  owner?: OwnerDto;
+  versionCount?: number;
 };
 
 export type BreadcrumbItem = {

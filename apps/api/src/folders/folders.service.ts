@@ -86,11 +86,11 @@ export class FoldersService {
     ];
 
     return {
-      folder: serializeFolder(folder),
+      folder: serializeFolder(folder, room.owner),
       dataRoom: serializeRoom(room, access),
       breadcrumbs,
-      folders: folders.map(serializeFolder),
-      files: files.map(serializeFile),
+      folders: folders.map((f) => serializeFolder(f, room.owner)),
+      files: files.map((f) => serializeFile(f, room.owner)),
       access,
     };
   }

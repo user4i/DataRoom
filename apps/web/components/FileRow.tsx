@@ -3,19 +3,21 @@
 import { FileText } from "lucide-react";
 import type { FileDto } from "@dataroom/shared";
 import { useDensityFlags } from "@/lib/density";
+import { formatBytes, formatDateTime } from "@/lib/format";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { formatBytes } from "@/components/FolderList";
 
 export function FileRow({
   file,
   onOpen,
   canEdit,
+  onDetails,
   onRename,
   onMove,
   onShare,
@@ -24,6 +26,7 @@ export function FileRow({
   file: FileDto;
   onOpen: (file: FileDto) => void;
   canEdit: boolean;
+  onDetails: (file: FileDto) => void;
   onRename: (file: FileDto) => void;
   onMove: (file: FileDto) => void;
   onShare: (file: FileDto) => void;
@@ -38,7 +41,12 @@ export function FileRow({
         <FileText className={`shrink-0 text-red-700 ${minimal ? "size-3.5" : "size-5"}`} />
         <div className="min-w-0 flex-1">
           <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{file.name}</p>
-          {minimal ? null : <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>}
+          {minimal ? null : (
+            <p className="text-xs text-muted-foreground">
+              {formatBytes(file.size)}
+              {!dense && file.createdAt ? ` · ${formatDateTime(file.createdAt)}` : ""}
+            </p>
+          )}
         </div>
         {minimal ? <span className="shrink-0 text-[11px] text-muted-foreground">{formatBytes(file.size)}</span> : null}
       </button>
@@ -50,8 +58,10 @@ export function FileRow({
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onOpen(file)}>View</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDetails(file)}>Details</DropdownMenuItem>
           {canEdit ? (
             <>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => onRename(file)}>Rename</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onMove(file)}>Move</DropdownMenuItem>
               <DropdownMenuItem onClick={() => onShare(file)}>Share</DropdownMenuItem>

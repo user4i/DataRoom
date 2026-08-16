@@ -19,7 +19,7 @@ export function serializeRoom(
   };
 }
 
-export function serializeFolder(folder: Folder) {
+export function serializeFolder(folder: Folder, owner?: Pick<User, 'id' | 'email' | 'name'>) {
   return {
     id: folder.id,
     dataRoomId: folder.dataRoomId,
@@ -30,10 +30,15 @@ export function serializeFolder(folder: Folder) {
     itemCount: folder.itemCount,
     createdAt: folder.createdAt.toISOString(),
     updatedAt: folder.updatedAt.toISOString(),
+    owner: owner ? serializeUser(owner) : undefined,
   };
 }
 
-export function serializeFile(file: File) {
+export function serializeFile(
+  file: File,
+  owner?: Pick<User, 'id' | 'email' | 'name'>,
+  extra?: { versionCount?: number },
+) {
   return {
     id: file.id,
     dataRoomId: file.dataRoomId,
@@ -43,6 +48,8 @@ export function serializeFile(file: File) {
     mimeType: file.mimeType,
     createdAt: file.createdAt.toISOString(),
     updatedAt: file.updatedAt.toISOString(),
+    owner: owner ? serializeUser(owner) : undefined,
+    versionCount: extra?.versionCount,
   };
 }
 

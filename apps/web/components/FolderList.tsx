@@ -6,15 +6,18 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useDensityFlags } from "@/lib/density";
+import { formatBytes, formatDateTime } from "@/lib/format";
 
 export function FolderList({
   folders,
   onOpen,
   canEdit,
+  onDetails,
   onRename,
   onShare,
   onDelete,
@@ -22,6 +25,7 @@ export function FolderList({
   folders: FolderDto[];
   onOpen: (folder: FolderDto) => void;
   canEdit: boolean;
+  onDetails: (folder: FolderDto) => void;
   onRename: (folder: FolderDto) => void;
   onShare: (folder: FolderDto) => void;
   onDelete: (folder: FolderDto) => void;
@@ -46,53 +50,35 @@ export function FolderList({
                 {minimal ? null : (
                 <p className="text-xs text-muted-foreground">
                   {folder.itemCount} items · {formatBytes(folder.totalSize)}
+                  {!dense && folder.createdAt ? ` · ${formatDateTime(folder.createdAt)}` : ""}
                 </p>
                 )}
               </div>
             </button>
-            {canEdit ? (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
-                    ⋯
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onRename(folder)}>Rename</DropdownMenuItem>
-                  <DropdownMenuItem onClick={() => onShare(folder)}>Share</DropdownMenuItem>
-                  <DropdownMenuItem variant="destructive" onClick={() => onDelete(folder)}>
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            ) : (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
-                    ⋯
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end">
-                  <DropdownMenuItem onClick={() => onOpen(folder)}>Open</DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
+                  ⋯
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => onOpen(folder)}>Open</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDetails(folder)}>Details</DropdownMenuItem>
+                {canEdit ? (
+                  <>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => onRename(folder)}>Rename</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onShare(folder)}>Share</DropdownMenuItem>
+                    <DropdownMenuItem variant="destructive" onClick={() => onDelete(folder)}>
+                      Delete
+                    </DropdownMenuItem>
+                  </>
+                ) : null}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </li>
         ))}
       </ul>
     </div>
   );
-}
-
-export function formatBytes(value: string | number) {
-  const n = typeof value === "string" ? Number(value) : value;
-  if (!n) return "0 B";
-  const units = ["B", "KB", "MB", "GB"];
-  let size = n;
-  let i = 0;
-  while (size >= 1024 && i < units.length - 1) {
-    size /= 1024;
-    i += 1;
-  }
-  return `${size.toFixed(i === 0 ? 0 : 1)} ${units[i]}`;
 }

@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
 import type { FileDto } from "@dataroom/shared";
+import { detailsFromFile, ItemDetailsList } from "@/components/item-details";
+import { formatDateTime } from "@/lib/format";
 
 export function FileViewer({
   roomId,
@@ -18,13 +20,18 @@ export function FileViewer({
   fileId: string;
   publicToken?: string;
 }) {
-  const [data, setData] = useState<{ file: FileDto; url: string } | null>(null);
+  const [data, setData] = useState<{
+    file: FileDto;
+    url: string;
+    dataRoomName?: string;
+    folderName?: string | null;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [versions, setVersions] = useState<{ id: string; version: number; size: string; createdAt: string }[]>([]);
 
   useEffect(() => {
     const path = publicToken ? `/public/${publicToken}/files/${fileId}` : `/files/${fileId}`;
-    api<{ file: FileDto; url: string }>(path)
+    api<{ file: FileDto; url: string; dataRoomName?: string; folderName?: string | null }>(path)
       .then((res) => {
         setData(res);
         if (!publicToken) {
@@ -74,7 +81,17 @@ export function FileViewer({
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {!data && !error ? <Skeleton className="h-[80vh] w-full" /> : null}
         {data ? (
-          <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-white" />
+          <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
+            <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-white" />
+            <aside className="rounded-lg border bg-card p-4">
+              <h2 className="mb-3 text-sm font-medium">Details</h2>
+              <ItemDetailsList
+                details={detailsFromFile(data.file, {
+                  location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
+                })}
+              />
+            </aside>
+          </div>
         ) : null}
         {versions.length > 0 ? (
           <section className="mt-6">
@@ -83,7 +100,7 @@ export function FileViewer({
               {versions.map((v) => (
                 <li key={v.id} className="flex items-center justify-between px-3 py-2">
                   <span className="text-muted-foreground">
-                    Version {v.version} · {new Date(v.createdAt).toLocaleString()}
+                    Version {v.version} · {formatDateTime(v.createdAt)}
                   </span>
                   <Button
                     variant="outline"

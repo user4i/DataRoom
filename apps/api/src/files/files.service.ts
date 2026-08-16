@@ -133,7 +133,18 @@ export class FilesService {
       folderId: file.folderId,
     });
     const url = await this.storage.signDownload(file.storageKey, file.name);
-    return { file: serializeFile(file), access, dataRoomId: room.id, url };
+    const folder = file.folderId
+      ? await this.prisma.folder.findUnique({ where: { id: file.folderId }, select: { name: true } })
+      : null;
+    const storedVersions = await this.prisma.fileVersion.count({ where: { fileId: file.id } });
+    return {
+      file: serializeFile(file, room.owner, { versionCount: storedVersions > 0 ? storedVersions : 1 }),
+      access,
+      dataRoomId: room.id,
+      dataRoomName: room.name,
+      folderName: folder?.name ?? null,
+      url,
+    };
   }
 
   async update(userId: string, id: string, dto: { name?: string; folderId?: string | null }) {

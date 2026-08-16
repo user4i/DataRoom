@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessService } from '../access/access.service';
-import { serializeRoom } from '../common/serialize';
+import { serializeFile, serializeFolder, serializeRoom } from '../common/serialize';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
 
 @Injectable()
@@ -110,27 +110,8 @@ export class DataRoomsService {
       folder: null,
       dataRoom: serializeRoom(room, access),
       breadcrumbs: [{ id: room.id, name: room.name }],
-      folders: folders.map((f) => ({
-        id: f.id,
-        dataRoomId: f.dataRoomId,
-        parentId: f.parentId,
-        name: f.name,
-        path: f.path,
-        totalSize: f.totalSize.toString(),
-        itemCount: f.itemCount,
-        createdAt: f.createdAt.toISOString(),
-        updatedAt: f.updatedAt.toISOString(),
-      })),
-      files: files.map((f) => ({
-        id: f.id,
-        dataRoomId: f.dataRoomId,
-        folderId: f.folderId,
-        name: f.name,
-        size: f.size.toString(),
-        mimeType: f.mimeType,
-        createdAt: f.createdAt.toISOString(),
-        updatedAt: f.updatedAt.toISOString(),
-      })),
+      folders: folders.map((f) => serializeFolder(f, room.owner)),
+      files: files.map((f) => serializeFile(f, room.owner)),
       access,
     };
   }

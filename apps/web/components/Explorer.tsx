@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Plus, Search, Share2, Upload } from "lucide-react";
+import { Info, Plus, Search, Share2, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import type { DeletionPreviewDto, FileDto, FolderDto, ListingDto, ResourceType } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,7 @@ import { MoveFileDialog } from "@/components/MoveFileDialog";
 import { DeletePreviewDialog } from "@/components/DeletePreviewDialog";
 import { EmptyState } from "@/components/empty-state";
 import { useDensityFlags } from "@/lib/density";
+import { detailsFromFile, detailsFromFolder, ItemDetailsDialog, type ItemDetails } from "@/components/item-details";
 
 export function Explorer({
   roomId,
@@ -46,9 +47,12 @@ export function Explorer({
   const [searchOpen, setSearchOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
+  const [details, setDetails] = useState<ItemDetails | null>(null);
 
   const isPublic = Boolean(publicToken);
   const canEdit = listing?.access === "OWNER" && !isPublic;
+  const location = listing?.breadcrumbs.map((item) => item.name).join(" / ") ?? "";
+  const owner = listing?.dataRoom.owner;
 
   const load = useCallback(async () => {
     try {
@@ -147,7 +151,29 @@ export function Explorer({
   return (
     <div className={minimal ? "space-y-2" : dense ? "space-y-3" : "space-y-6"}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <Breadcrumbs items={listing.breadcrumbs} hrefFor={hrefFor} />
+        <div className="flex min-w-0 items-center gap-1">
+          <Breadcrumbs items={listing.breadcrumbs} hrefFor={hrefFor} />
+          {listing.folder ? (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-muted-foreground"
+              aria-label="Folder details"
+              onClick={() => {
+                const folder = listing.folder;
+                if (!folder) return;
+                setDetails(
+                  detailsFromFolder(folder, {
+                    owner,
+                    location: listing.breadcrumbs.slice(0, -1).map((item) => item.name).join(" / "),
+                  }),
+                );
+              }}
+            >
+              <Info className="size-4" />
+            </Button>
+          ) : null}
+        </div>
         {canEdit ? (
           dense ? (
           <div className="flex items-center gap-1">
@@ -302,6 +328,7 @@ export function Explorer({
             folders={listing.folders}
             onOpen={openFolder}
             canEdit={canEdit}
+            onDetails={(folder) => setDetails(detailsFromFolder(folder, { owner, location }))}
             onRename={(folder) => setRenameTarget({ type: "folder", id: folder.id, name: folder.name })}
             onShare={(folder) => setShare({ type: "FOLDER", id: folder.id })}
             onDelete={async (folder) => {
@@ -327,6 +354,7 @@ export function Explorer({
                     file={file}
                     onOpen={openFile}
                     canEdit={canEdit}
+                    onDetails={(f) => setDetails(detailsFromFile(f, { owner, location }))}
                     onRename={(f) => setRenameTarget({ type: "file", id: f.id, name: f.name })}
                     onMove={setMoveFile}
                     onShare={(f) => setShare({ type: "FILE", id: f.id })}
@@ -459,6 +487,7 @@ export function Explorer({
           }
         }}
       />
+      <ItemDetailsDialog open={Boolean(details)} onOpenChange={(v) => !v && setDetails(null)} details={details} />
     </div>
   );
 }

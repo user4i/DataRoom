@@ -1,7 +1,7 @@
 "use client";
 
 import type { DeletionPreviewDto } from "@dataroom/shared";
-import { formatBytes } from "@/components/FolderList";
+import { formatBytes } from "@/lib/format";
 import {
   AlertDialog,
   AlertDialogAction,
