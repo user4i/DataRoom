@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bug, Check } from "lucide-react";
+import { Bug } from "lucide-react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -81,28 +81,36 @@ export function DevCommands() {
           Видно лише в режимі розробки. У production-збірці цього меню немає.
         </p>
         <DropdownMenuSeparator />
-        <DropdownMenuItem
-          onSelect={(event) => {
-            event.preventDefault();
-            setDevDelay({ enabled: !delay.enabled });
-          }}
-        >
-          <span className="flex size-4 items-center justify-center">
-            {delay.enabled ? <Check className="size-4" /> : null}
-          </span>
-          <span>
-            <span className="block">Штучна затримка</span>
-            <span className="block text-xs text-muted-foreground">
-              {delay.enabled ? `Увімкнено · ${delay.seconds} с` : "Вимкнено"}
-            </span>
-          </span>
-        </DropdownMenuItem>
         <div
-          className="px-2 pb-2"
+          className="px-2 py-1.5"
           onPointerDown={(event) => event.stopPropagation()}
           onKeyDown={(event) => event.stopPropagation()}
         >
-          <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-sm">Штучна затримка</p>
+              <p className="text-xs text-muted-foreground">
+                {delay.enabled ? `Увімкнено · ${delay.seconds} с` : "Вимкнено"}
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={delay.enabled}
+              aria-label="Штучна затримка"
+              onClick={() => setDevDelay({ enabled: !delay.enabled })}
+              className={`relative h-5 w-9 shrink-0 rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                delay.enabled ? "bg-amber-600" : "bg-muted-foreground/30"
+              }`}
+            >
+              <span
+                className={`absolute top-0.5 left-0.5 block size-4 rounded-full bg-background shadow-sm transition-transform ${
+                  delay.enabled ? "translate-x-4" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </div>
+          <label className="mt-2 flex items-center justify-between gap-2 text-xs text-muted-foreground">
             Секунд (за замовчуванням {DEV_DELAY_DEFAULT_SECONDS} с)
             <Input
               type="number"
