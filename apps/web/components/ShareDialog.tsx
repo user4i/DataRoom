@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { formatDateTime } from "@/lib/format";
 
 export function ShareDialog({
   open,
@@ -59,6 +60,7 @@ export function ShareDialog({
             {publicShare?.token ? (
               <>
                 <Input readOnly value={`${origin}/s/${publicShare.token}`} />
+                <p className="text-xs text-muted-foreground">Надано {formatDateTime(publicShare.createdAt)}</p>
                 <div className="flex gap-2">
                   <Button
                     onClick={async () => {
@@ -139,8 +141,11 @@ export function ShareDialog({
                 {people.map((share) => (
                   <li key={share.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
                     <span>
-                      {share.user?.email || share.invitedEmail}
-                      {!share.userId ? <span className="ml-2 text-muted-foreground">(очікує)</span> : null}
+                      <span className="block">{share.user?.email || share.invitedEmail}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        Надано {formatDateTime(share.createdAt)}
+                        {!share.userId ? " · очікує" : ""}
+                      </span>
                     </span>
                     <Button
                       variant="ghost"
