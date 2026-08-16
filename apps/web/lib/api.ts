@@ -1,3 +1,5 @@
+import { doneProgress, startProgress } from "./progress";
+
 export class ApiError extends Error {
   status: number;
   constructor(status: number, message: string) {
@@ -20,6 +22,19 @@ export function setToken(token: string | null) {
 }
 
 export async function api<T>(
+  path: string,
+  options: RequestInit & { token?: string | null; progress?: boolean } = {},
+): Promise<T> {
+  const { progress = true, token, ...rest } = options;
+  if (progress) startProgress();
+  try {
+    return await apiRequest<T>(path, { ...rest, token });
+  } finally {
+    if (progress) doneProgress();
+  }
+}
+
+async function apiRequest<T>(
   path: string,
   options: RequestInit & { token?: string | null } = {},
 ): Promise<T> {

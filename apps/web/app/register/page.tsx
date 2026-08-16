@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { ApiError } from "@/lib/api";
+import { startNavigation } from "@/lib/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -23,6 +24,7 @@ export default function RegisterPage() {
     setBusy(true);
     try {
       await register(name, email, password);
+      startNavigation();
       router.replace("/rooms");
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : "Could not create account");

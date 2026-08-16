@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Info, Plus, Search, Share2, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { startNavigation } from "@/lib/progress";
 import type { DeletionPreviewDto, FileDto, FolderDto, ListingDto, ResourceType } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -71,6 +72,7 @@ export function Explorer({
         setListing(data.listing);
       } else if (publicToken && !folderId && "file" in data && data.file) {
         const file = (data as { file: { file: FileDto } }).file.file;
+        startNavigation();
         router.replace(`/s/${publicToken}/files/${file.id}`);
         return;
       } else {
@@ -98,6 +100,7 @@ export function Explorer({
       try {
         const data = await api<{ folders: { id: string; name: string }[]; files: { id: string; name: string }[] }>(
           `/data-rooms/${listing.dataRoom.id}/search?q=${encodeURIComponent(query.trim())}`,
+          { progress: false },
         );
         setResults(data);
       } catch (err) {
@@ -116,10 +119,12 @@ export function Explorer({
   };
 
   const openFolder = (folder: FolderDto) => {
+    startNavigation();
     if (publicToken) router.push(`/s/${publicToken}/f/${folder.id}`);
     else router.push(`/rooms/${folder.dataRoomId}/f/${folder.id}`);
   };
   const openFile = (file: FileDto) => {
+    startNavigation();
     if (publicToken) router.push(`/s/${publicToken}/files/${file.id}`);
     else router.push(`/rooms/${file.dataRoomId}/files/${file.id}`);
   };

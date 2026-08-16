@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
+import { startNavigation } from "@/lib/progress";
 import type { DataRoomDto } from "@dataroom/shared";
 
 export default function RoomsPage() {
@@ -61,7 +62,10 @@ function RoomsInner() {
           <RoomGrid
             rooms={owned}
             canEdit
-            onOpen={(id) => router.push(`/rooms/${id}`)}
+            onOpen={(id) => {
+              startNavigation();
+              router.push(`/rooms/${id}`);
+            }}
             onRename={setRename}
             onDelete={async (room) => {
               if (!confirm(`Delete data room “${room.name}”? All folders and files inside will be removed.`)) return;
@@ -80,7 +84,14 @@ function RoomsInner() {
           {shared.length === 0 ? (
             <p className="text-sm text-muted-foreground">Nothing has been shared with this account yet.</p>
           ) : (
-            <RoomGrid rooms={shared} canEdit={false} onOpen={(id) => router.push(`/rooms/${id}`)} />
+            <RoomGrid
+              rooms={shared}
+              canEdit={false}
+              onOpen={(id) => {
+                startNavigation();
+                router.push(`/rooms/${id}`);
+              }}
+            />
           )}
         </section>
       </main>
@@ -102,6 +113,7 @@ function RoomsInner() {
                   const room = await api<DataRoomDto>("/data-rooms", { method: "POST", body: JSON.stringify({ name }) });
                   setName("");
                   setOpen(false);
+                  startNavigation();
                   router.push(`/rooms/${room.id}`);
                 } catch (err) {
                   toast.error(err instanceof ApiError ? err.message : "Could not create room");
