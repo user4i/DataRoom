@@ -289,7 +289,16 @@ export function Explorer({
           description={canEdit ? "Create a folder or drop PDFs above." : "The owner has not added files here."}
         />
       ) : (
-        <div className="space-y-6">
+        <div
+          className={
+            compact && listing.folders.length > 0 && listing.files.length > 0
+              ? "grid items-start gap-3 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]"
+              : compact
+                ? "space-y-3"
+                : "space-y-6"
+          }
+        >
+          <div className="min-w-0">
           <FolderList
             folders={listing.folders}
             onOpen={openFolder}
@@ -306,8 +315,9 @@ export function Explorer({
               }
             }}
           />
+          </div>
           {listing.files.length > 0 ? (
-            <div className="space-y-1">
+            <div className="min-w-0 space-y-1">
               <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Files</p>
               <ul className="divide-y rounded-lg border bg-card">
                 {listing.files.map((file) => (
