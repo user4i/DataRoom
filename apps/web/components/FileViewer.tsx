@@ -82,7 +82,7 @@ export function FileViewer({
         {!data && !error ? <Skeleton className="h-[80vh] w-full" /> : null}
         {data ? (
           <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-white" />
+            <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-background" />
             <aside className="rounded-lg border bg-card p-4">
               <h2 className="mb-3 text-sm font-medium">Деталі</h2>
               <ItemDetailsList

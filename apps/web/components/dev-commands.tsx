@@ -68,7 +68,7 @@ export function DevCommands() {
         <Button
           variant="ghost"
           size="icon"
-          className="size-8 text-amber-700"
+          className="size-8 text-amber-700 dark:text-amber-400"
           aria-label="Команди розробки"
           title="Команди розробки (лише development)"
         >

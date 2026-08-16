@@ -44,7 +44,7 @@ export function FolderList({
             className={`group flex items-center ${minimal ? "gap-1.5 px-2 py-0.5" : dense ? "gap-3 px-3 py-1.5" : "gap-3 px-3 py-2.5"}`}
           >
             <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => onOpen(folder)}>
-              <Folder className={`shrink-0 text-sky-700 ${minimal ? "size-3.5" : "size-5"}`} />
+              <Folder className={`shrink-0 text-sky-700 dark:text-sky-400 ${minimal ? "size-3.5" : "size-5"}`} />
               <div className="min-w-0">
                 <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{folder.name}</p>
                 {minimal ? null : (

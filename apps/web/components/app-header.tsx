@@ -6,6 +6,7 @@ import { useDensityFlags } from "@/lib/density";
 import { Button } from "@/components/ui/button";
 import { DensityMenu } from "@/components/density-menu";
 import { DevCommands } from "@/components/dev-commands";
+import { ThemeMenu } from "@/components/theme-menu";
 
 export function AppHeader({ title }: { title?: string }) {
   const { user, logout } = useAuth();
@@ -21,6 +22,7 @@ export function AppHeader({ title }: { title?: string }) {
         </div>
         <div className="flex items-center gap-2">
           <DevCommands />
+          <ThemeMenu />
           <DensityMenu />
           {user ? <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span> : null}
           {user ? (
@@ -28,7 +30,7 @@ export function AppHeader({ title }: { title?: string }) {
               Вийти
             </Button>
           ) : (
-            <Button asChild size="sm" variant="outline" className="bg-white">
+            <Button asChild size="sm" variant="outline">
               <Link href="/login">Увійти</Link>
             </Button>
           )}

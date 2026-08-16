@@ -10,6 +10,7 @@ import { startNavigation } from "@/lib/progress";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { ThemeMenu } from "@/components/theme-menu";
 
 export default function RegisterPage() {
   const { register } = useAuth();
@@ -34,7 +35,11 @@ export default function RegisterPage() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
+    <>
+      <div className="fixed right-3 top-3 z-50">
+        <ThemeMenu />
+      </div>
+      <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
       <h1 className="text-2xl font-semibold">Реєстрація</h1>
       <p className="mt-1 text-sm text-muted-foreground">Email і пароль. У цьому MVP немає входу через Google.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
@@ -61,5 +66,6 @@ export default function RegisterPage() {
         </Link>
       </p>
     </main>
+    </>
   );
 }
