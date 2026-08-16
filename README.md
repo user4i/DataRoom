@@ -260,7 +260,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 **AI usage -- just analything, commits**
 *My part -- most.*
 
-6. Double checking base version by task details. (in process)
+6. Double checking base version by task details.
 
 **AI usage -- partially.**
 *My part -- partially.*
@@ -289,4 +289,4 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 ~1 hour = Plan + Base Development
 ~1 hour = Deploy
-~1 hour = Testing, code clearing, my part of README
+~1.5 hour = Testing, code clearing, my part of README
