@@ -50,6 +50,7 @@ model Folder {
 
   @@index([dataRoomId, parentId])
   @@index([path])
+  @@index([dataRoomId, name])
 }
 
 model File {
@@ -69,6 +70,7 @@ model File {
 
   @@index([dataRoomId, folderId])
   @@index([folderId, name])
+  @@index([dataRoomId, name])
 }
 
 model FileVersion {
