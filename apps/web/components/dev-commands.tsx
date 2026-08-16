@@ -1,12 +1,20 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { Bug } from "lucide-react";
+import { Bug, Check } from "lucide-react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
+import {
+  DEV_DELAY_DEFAULT_SECONDS,
+  getDevDelay,
+  setDevDelay,
+  subscribeDevDelay,
+  type DevDelayState,
+} from "@/lib/dev-delay";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +32,10 @@ export function DevCommands() {
   const { user } = useAuth();
   const pathname = usePathname();
   const [busy, setBusy] = useState(false);
+  const [delay, setDelay] = useState<DevDelayState>(getDevDelay);
   const roomId = pathname.match(/^\/rooms\/([^/]+)/)?.[1] ?? null;
+
+  useEffect(() => subscribeDevDelay(setDelay), []);
 
   if (process.env.NODE_ENV !== "development" || !user) return null;
 
@@ -69,6 +80,41 @@ export function DevCommands() {
         <p className="px-2 pb-2 text-xs text-muted-foreground">
           Видно лише в режимі розробки. У production-збірці цього меню немає.
         </p>
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onSelect={(event) => {
+            event.preventDefault();
+            setDevDelay({ enabled: !delay.enabled });
+          }}
+        >
+          <span className="flex size-4 items-center justify-center">
+            {delay.enabled ? <Check className="size-4" /> : null}
+          </span>
+          <span>
+            <span className="block">Штучна затримка</span>
+            <span className="block text-xs text-muted-foreground">
+              {delay.enabled ? `Увімкнено · ${delay.seconds} с` : "Вимкнено"}
+            </span>
+          </span>
+        </DropdownMenuItem>
+        <div
+          className="px-2 pb-2"
+          onPointerDown={(event) => event.stopPropagation()}
+          onKeyDown={(event) => event.stopPropagation()}
+        >
+          <label className="flex items-center justify-between gap-2 text-xs text-muted-foreground">
+            Секунд (за замовчуванням {DEV_DELAY_DEFAULT_SECONDS} с)
+            <Input
+              type="number"
+              min={1}
+              max={30}
+              step={1}
+              className="h-8 w-16 text-foreground"
+              value={delay.seconds}
+              onChange={(event) => setDevDelay({ seconds: Number(event.target.value) })}
+            />
+          </label>
+        </div>
         <DropdownMenuSeparator />
         <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
           Наповнити файлами і папками

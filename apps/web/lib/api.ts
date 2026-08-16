@@ -1,4 +1,5 @@
 import { doneProgress, startProgress } from "./progress";
+import { applyDevDelay } from "./dev-delay";
 
 export class ApiError extends Error {
   status: number;
@@ -28,6 +29,7 @@ export async function api<T>(
   const { progress = true, token, ...rest } = options;
   if (progress) startProgress();
   try {
+    if (progress && !path.startsWith("/auth/")) await applyDevDelay();
     return await apiRequest<T>(path, { ...rest, token });
   } finally {
     if (progress) doneProgress();

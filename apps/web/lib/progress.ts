@@ -1,3 +1,5 @@
+import { getDevDelay } from "./dev-delay";
+
 type ProgressState = {
   visible: boolean;
   value: number;
@@ -82,7 +84,13 @@ export function startNavigation() {
 }
 
 export function finishNavigation() {
+  if (typeof window === "undefined") return;
   if (!navPending) return;
-  navPending = false;
-  doneProgress();
+  const delay = process.env.NODE_ENV === "development" ? getDevDelay() : null;
+  const wait = delay?.enabled ? delay.seconds * 1000 : 0;
+  window.setTimeout(() => {
+    if (!navPending) return;
+    navPending = false;
+    doneProgress();
+  }, wait);
 }
