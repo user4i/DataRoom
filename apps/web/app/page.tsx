@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/lib/api";
-import { HealthBadge } from "@/components/health-badge";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 
@@ -30,7 +29,6 @@ export default function HomePage() {
           <Link href="/login">Sign in</Link>
         </Button>
       </div>
-      <HealthBadge />
     </main>
   );
 }
