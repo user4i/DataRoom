@@ -82,8 +82,21 @@ jobs:
         shell: bash
         run: rm -rf .vercel apps/web/.vercel
 
+      # Next.js lives in apps/web. Without Root Directory the builder looks for
+      # .next at the repo root (/vercel/path0/.next) and fails. CLI still uploads
+      # from the git root so workspace packages and the lockfile are included.
+      - name: Set Vercel Root Directory to apps/web
+        shell: bash
+        run: |
+          payload='{"framework":"nextjs","rootDirectory":"apps/web","installCommand":"cd ../.. && npm ci","buildCommand":"npm run build"}'
+          url="https://api.vercel.com/v9/projects/${VERCEL_PROJECT_ID}?teamId=${VERCEL_ORG_ID}"
+          curl -fsS -X PATCH "$url" \
+            -H "Authorization: Bearer ${VERCEL_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d "$payload"
+
       - name: Deploy to Vercel
-        run: npx vercel deploy --prod --yes --token="$VERCEL_TOKEN"
+        run: npx vercel deploy --prod --yes --token="$VERCEL_TOKEN" --cwd apps/web
 
   deploy-api:
     name: Deploy API (Render)
