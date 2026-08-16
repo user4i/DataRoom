@@ -4,8 +4,8 @@ Virtual data room MVP: nested folders, PDF files, public links, and per-user sha
 
 ## Live URLs
 
-- Frontend: _pending deploy — see Phase 7 notes in this README_
-- Backend: _pending deploy — see Phase 7 notes in this README_
+- Frontend: [https://web-rosy-five-47.vercel.app](https://web-rosy-five-47.vercel.app)
+- Backend: [https://dataroom-vkxm.onrender.com](https://dataroom-vkxm.onrender.com)
 
 ## Prerequisites
 
@@ -44,41 +44,45 @@ npm run dev:api
 npm run dev:web
 ```
 
-Open http://localhost:3000 — API health: http://localhost:3001/health
+Open [http://localhost:3000](http://localhost:3000) — API health: [http://localhost:3001/health](http://localhost:3001/health)
 
 ## Environment variables
 
-| Variable | Where | Required | Description |
-|---|---|---|---|
-| `DATABASE_URL` | API | yes | PostgreSQL connection string |
-| `JWT_SECRET` | API | yes | Secret for access and storage tokens |
-| `JWT_EXPIRES_IN` | API | no | Access token TTL (default `7d`) |
-| `PORT` | API | no | API port (default `3001`) |
-| `FRONTEND_URL` | API | yes | CORS origin, e.g. `http://localhost:3000` |
-| `API_PUBLIC_URL` | API | yes | Public API base used in local upload/download URLs |
-| `STORAGE_DRIVER` | API | no | `local` (default) or `s3` |
-| `UPLOAD_DIR` | API | no | Local blob directory (default `./uploads`) |
-| `S3_ENDPOINT` | API | if s3 | R2/S3 endpoint |
-| `S3_REGION` | API | if s3 | Region (`auto` for R2) |
-| `S3_BUCKET` | API | if s3 | Bucket name |
-| `S3_ACCESS_KEY_ID` | API | if s3 | Access key |
-| `S3_SECRET_ACCESS_KEY` | API | if s3 | Secret key |
-| `S3_FORCE_PATH_STYLE` | API | no | Default `true` |
-| `NEXT_PUBLIC_API_URL` | Web | yes | Browser-facing API URL |
+
+| Variable               | Where | Required | Description                                        |
+| ---------------------- | ----- | -------- | -------------------------------------------------- |
+| `DATABASE_URL`         | API   | yes      | PostgreSQL connection string                       |
+| `JWT_SECRET`           | API   | yes      | Secret for access and storage tokens               |
+| `JWT_EXPIRES_IN`       | API   | no       | Access token TTL (default `7d`)                    |
+| `PORT`                 | API   | no       | API port (default `3001`)                          |
+| `FRONTEND_URL`         | API   | yes      | CORS origin, e.g. `http://localhost:3000`          |
+| `API_PUBLIC_URL`       | API   | yes      | Public API base used in local upload/download URLs |
+| `STORAGE_DRIVER`       | API   | no       | `local` (default) or `s3`                          |
+| `UPLOAD_DIR`           | API   | no       | Local blob directory (default `./uploads`)         |
+| `S3_ENDPOINT`          | API   | if s3    | R2/S3 endpoint                                     |
+| `S3_REGION`            | API   | if s3    | Region (`auto` for R2)                             |
+| `S3_BUCKET`            | API   | if s3    | Bucket name                                        |
+| `S3_ACCESS_KEY_ID`     | API   | if s3    | Access key                                         |
+| `S3_SECRET_ACCESS_KEY` | API   | if s3    | Secret key                                         |
+| `S3_FORCE_PATH_STYLE`  | API   | no       | Default `true`                                     |
+| `NEXT_PUBLIC_API_URL`  | Web   | yes      | Browser-facing API URL                             |
+
 
 Never commit `.env` or `.env.local`.
 
 ## Scripts
 
-| Script | What it does |
-|---|---|
-| `npm run dev:api` | NestJS watch mode on port 3001 |
-| `npm run dev:web` | Next.js dev server on port 3000 |
-| `npm run build:api` | Generate Prisma client and compile NestJS |
-| `npm run build:web` | Production Next.js build |
-| `npm run db:generate` | `prisma generate` |
-| `npm run db:migrate` | `prisma migrate dev` |
-| `npm run db:deploy` | `prisma migrate deploy` |
+
+| Script                | What it does                              |
+| --------------------- | ----------------------------------------- |
+| `npm run dev:api`     | NestJS watch mode on port 3001            |
+| `npm run dev:web`     | Next.js dev server on port 3000           |
+| `npm run build:api`   | Generate Prisma client and compile NestJS |
+| `npm run build:web`   | Production Next.js build                  |
+| `npm run db:generate` | `prisma generate`                         |
+| `npm run db:migrate`  | `prisma migrate dev`                      |
+| `npm run db:deploy`   | `prisma migrate deploy`                   |
+
 
 ## Repository structure
 
@@ -155,6 +159,8 @@ erDiagram
   }
 ```
 
+
+
 ## Deploy
 
 ### Database (Neon)
@@ -190,7 +196,7 @@ See **CI/CD** below for the GitHub secrets.
 
 ### What you must do (no cloud tokens in this environment)
 
-This workspace does not have Neon / Render / Vercel / R2 account tokens. After you create those services and add the Actions secrets, paste the public URLs into the **Live URLs** section above.
+Public URLs are listed at the top of this README. Keep Actions secrets and service env vars in sync if those hosts change.
 
 Smoke checklist (incognito): register → create room → nested folder → upload PDF → rename/move → public link in a private window → share to a second account → revoke → delete folder with warning.
 
@@ -208,14 +214,16 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 **GitHub → Settings → Secrets and variables → Actions**
 
-| Secret | Required | Where to get it |
-|---|---|---|
-| `VERCEL_TOKEN` | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) — same account that owns the project |
-| `VERCEL_ORG_ID` | yes (web) | Team ID of the project's team (Hobby: **Your ID** on the account/tokens page) |
-| `VERCEL_PROJECT_ID` | yes (web) | Vercel project → Settings → General |
-| `NEXT_PUBLIC_API_URL` | yes (web) | Public Render URL of the API, **without** `/health` (e.g. `https://<service>.onrender.com`) |
-| `RENDER_DEPLOY_HOOK` | yes (API) | Render service → Settings → Deploy Hook |
-| `DATABASE_URL` | optional | Neon connection string; the migrate job no-ops when this is unset |
+
+| Secret                | Required  | Where to get it                                                                                 |
+| --------------------- | --------- | ----------------------------------------------------------------------------------------------- |
+| `VERCEL_TOKEN`        | yes (web) | [Vercel account tokens](https://vercel.com/account/tokens) — same account that owns the project |
+| `VERCEL_ORG_ID`       | yes (web) | Team ID of the project's team (Hobby: **Your ID** on the account/tokens page)                   |
+| `VERCEL_PROJECT_ID`   | yes (web) | Vercel project → Settings → General                                                             |
+| `NEXT_PUBLIC_API_URL` | yes (web) | Public Render URL of the API, **without** `/health` (e.g. `https://<service>.onrender.com`)     |
+| `RENDER_DEPLOY_HOOK`  | yes (API) | Render service → Settings → Deploy Hook                                                         |
+| `DATABASE_URL`        | optional  | Neon connection string; the migrate job no-ops when this is unset                               |
+
 
 ## Design decisions
 
@@ -228,3 +236,4 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 ### How would you add viewer vs editor roles later?
 
 ## Where and how AI was used
+
