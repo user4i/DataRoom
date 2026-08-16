@@ -2,7 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { DeletionPreviewDto } from "@dataroom/shared";
-import { formatBytes, ukPlural } from "@/lib/format";
+import { ukPlural } from "@/lib/format";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -13,6 +15,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+
+const CONFIRM_WORD = "ВИДАЛИТИ";
 
 function hasViewers(preview: DeletionPreviewDto | null) {
   if (!preview?.viewers) return false;
@@ -47,10 +51,15 @@ export function DeletePreviewDialog({
   onConfirm: () => void;
 }) {
   const [ownerConfirm, setOwnerConfirm] = useState(false);
+  const [typed, setTyped] = useState("");
   const viewers = hasViewers(preview);
+  const wordMatches = typed.trim().toUpperCase() === CONFIRM_WORD;
+  const canDelete = Boolean(preview) && wordMatches && (!viewers || ownerConfirm);
 
   useEffect(() => {
-    if (open) setOwnerConfirm(false);
+    if (!open) return;
+    setOwnerConfirm(false);
+    setTyped("");
   }, [open, preview]);
 
   return (
@@ -60,10 +69,13 @@ export function DeletePreviewDialog({
           <AlertDialogTitle>Видалити цю папку?</AlertDialogTitle>
           <AlertDialogDescription>
             {preview
-              ? `Буде остаточно видалено ${ukPlural(preview.folderCount, "папку", "папки", "папок")} і ${ukPlural(preview.fileCount, "файл", "файли", "файлів")} (${formatBytes(preview.totalSize)}). Вкладені елементи відновити не можна.`
+              ? `Ця папка містить ${ukPlural(preview.fileCount, "файл", "файли", "файлів")}. Ви впевнені, що хочете видалити її та весь її вміст?`
               : "Завантаження списку того, що буде видалено…"}
           </AlertDialogDescription>
         </AlertDialogHeader>
+        {preview ? (
+          <p className="text-xs text-muted-foreground">Відновити вміст не можна.</p>
+        ) : null}
         {preview?.sampleNames?.length ? (
           <ul className="list-disc pl-5 text-sm text-muted-foreground">
             {preview.sampleNames.map((name) => (
@@ -92,10 +104,22 @@ export function DeletePreviewDialog({
             </label>
           </div>
         ) : null}
+        <div className="space-y-1.5">
+          <Label htmlFor="delete-confirm-word">
+            Щоб підтвердити, введіть <span className="font-semibold">{CONFIRM_WORD}</span>
+          </Label>
+          <Input
+            id="delete-confirm-word"
+            autoComplete="off"
+            value={typed}
+            onChange={(event) => setTyped(event.target.value)}
+            placeholder={CONFIRM_WORD}
+          />
+        </div>
         <AlertDialogFooter>
           <AlertDialogCancel>Скасувати</AlertDialogCancel>
           <AlertDialogAction
-            disabled={!preview || (viewers && !ownerConfirm)}
+            disabled={!canDelete}
             onClick={onConfirm}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
