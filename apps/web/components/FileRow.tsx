@@ -2,7 +2,7 @@
 
 import { FileText } from "lucide-react";
 import type { FileDto } from "@dataroom/shared";
-import { useDensity } from "@/lib/density";
+import { useDensityFlags } from "@/lib/density";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,20 +29,22 @@ export function FileRow({
   onShare: (file: FileDto) => void;
   onDelete: (file: FileDto) => void;
 }) {
-  const { density } = useDensity();
-  const compact = density === "compact";
+  const { dense, minimal } = useDensityFlags();
   return (
-    <li className={`flex items-center gap-3 px-3 ${compact ? "py-1.5" : "py-2.5"}`}>
-      <button type="button" className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpen(file)}>
-        <FileText className="size-5 shrink-0 text-red-700" />
-        <div className="min-w-0">
-          <p className="truncate font-medium">{file.name}</p>
-          <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>
+    <li
+      className={`group flex items-center ${minimal ? "gap-1.5 px-2 py-0.5" : dense ? "gap-3 px-3 py-1.5" : "gap-3 px-3 py-2.5"}`}
+    >
+      <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => onOpen(file)}>
+        <FileText className={`shrink-0 text-red-700 ${minimal ? "size-3.5" : "size-5"}`} />
+        <div className="min-w-0 flex-1">
+          <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{file.name}</p>
+          {minimal ? null : <p className="text-xs text-muted-foreground">{formatBytes(file.size)}</p>}
         </div>
+        {minimal ? <span className="shrink-0 text-[11px] text-muted-foreground">{formatBytes(file.size)}</span> : null}
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="ghost" size="sm">
+          <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
             ⋯
           </Button>
         </DropdownMenuTrigger>

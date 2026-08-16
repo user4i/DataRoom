@@ -9,7 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useDensity } from "@/lib/density";
+import { useDensityFlags } from "@/lib/density";
 
 export function FolderList({
   folders,
@@ -26,27 +26,34 @@ export function FolderList({
   onShare: (folder: FolderDto) => void;
   onDelete: (folder: FolderDto) => void;
 }) {
-  const compact = useDensity().density === "compact";
+  const { dense, minimal } = useDensityFlags();
   if (folders.length === 0) return null;
   return (
-    <div className="space-y-1">
-      <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Folders</p>
-      <ul className="divide-y rounded-lg border bg-card">
+    <div className={minimal ? "space-y-0" : "space-y-1"}>
+      {minimal ? null : (
+        <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Folders</p>
+      )}
+      <ul className={`divide-y bg-card ${minimal ? "border-y" : "rounded-lg border"}`}>
         {folders.map((folder) => (
-          <li key={folder.id} className={`flex items-center gap-3 px-3 ${compact ? "py-1.5" : "py-2.5"}`}>
-            <button type="button" className="flex min-w-0 flex-1 items-center gap-3 text-left" onClick={() => onOpen(folder)}>
-              <Folder className="size-5 shrink-0 text-sky-700" />
+          <li
+            key={folder.id}
+            className={`group flex items-center ${minimal ? "gap-1.5 px-2 py-0.5" : dense ? "gap-3 px-3 py-1.5" : "gap-3 px-3 py-2.5"}`}
+          >
+            <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => onOpen(folder)}>
+              <Folder className={`shrink-0 text-sky-700 ${minimal ? "size-3.5" : "size-5"}`} />
               <div className="min-w-0">
-                <p className="truncate font-medium">{folder.name}</p>
+                <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{folder.name}</p>
+                {minimal ? null : (
                 <p className="text-xs text-muted-foreground">
                   {folder.itemCount} items · {formatBytes(folder.totalSize)}
                 </p>
+                )}
               </div>
             </button>
             {canEdit ? (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
                     ⋯
                   </Button>
                 </DropdownMenuTrigger>
@@ -61,7 +68,7 @@ export function FolderList({
             ) : (
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm">
+                  <Button variant="ghost" size="sm" className={minimal ? "size-6 opacity-0 group-hover:opacity-100" : undefined}>
                     ⋯
                   </Button>
                 </DropdownMenuTrigger>

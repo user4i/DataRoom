@@ -19,7 +19,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { MoveFileDialog } from "@/components/MoveFileDialog";
 import { DeletePreviewDialog } from "@/components/DeletePreviewDialog";
 import { EmptyState } from "@/components/empty-state";
-import { useDensity } from "@/lib/density";
+import { useDensityFlags } from "@/lib/density";
 
 export function Explorer({
   roomId,
@@ -31,8 +31,7 @@ export function Explorer({
   publicToken?: string;
 }) {
   const router = useRouter();
-  const { density } = useDensity();
-  const compact = density === "compact";
+  const { dense, minimal } = useDensityFlags();
   const [listing, setListing] = useState<ListingDto | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [createOpen, setCreateOpen] = useState(false);
@@ -146,11 +145,11 @@ export function Explorer({
   }
 
   return (
-    <div className={compact ? "space-y-3" : "space-y-6"}>
+    <div className={minimal ? "space-y-2" : dense ? "space-y-3" : "space-y-6"}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Breadcrumbs items={listing.breadcrumbs} hrefFor={hrefFor} />
         {canEdit ? (
-          compact ? (
+          dense ? (
           <div className="flex items-center gap-1">
             {!isPublic ? (
               <Button
@@ -216,7 +215,7 @@ export function Explorer({
           )
         ) : (
           <div className="flex items-center gap-1">
-            {!isPublic && compact ? (
+            {!isPublic && dense ? (
               <Button
                 variant={searchOpen || query ? "secondary" : "ghost"}
                 size="icon"
@@ -232,9 +231,9 @@ export function Explorer({
         )}
       </div>
 
-      {!isPublic && (!compact || searchOpen || query.trim()) ? (
+      {!isPublic && (!dense || searchOpen || query.trim()) ? (
         <Input
-          autoFocus={compact}
+          autoFocus={dense}
           placeholder="Search files and folders by name"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -273,9 +272,9 @@ export function Explorer({
         </div>
       ) : null}
 
-      {canEdit && (!compact || uploadOpen || uploadBusy) ? (
+      {canEdit && (!dense || uploadOpen || uploadBusy) ? (
         <UploadDropzone
-          compact={compact}
+          compact={dense}
           dataRoomId={listing.dataRoom.id}
           folderId={listing.folder?.id ?? null}
           onUploaded={() => void load()}
@@ -291,10 +290,10 @@ export function Explorer({
       ) : (
         <div
           className={
-            compact && listing.folders.length > 0 && listing.files.length > 0
-              ? "grid items-start gap-3 md:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,18rem)_minmax(0,1fr)]"
-              : compact
-                ? "space-y-3"
+            dense && listing.folders.length > 0 && listing.files.length > 0
+              ? `grid items-start md:grid-cols-[minmax(0,14rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] ${minimal ? "gap-2" : "gap-3"}`
+              : dense
+                ? "space-y-2"
                 : "space-y-6"
           }
         >
@@ -317,9 +316,11 @@ export function Explorer({
           />
           </div>
           {listing.files.length > 0 ? (
-            <div className="min-w-0 space-y-1">
+            <div className={`min-w-0 ${minimal ? "space-y-0" : "space-y-1"}`}>
+              {minimal ? null : (
               <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Files</p>
-              <ul className="divide-y rounded-lg border bg-card">
+              )}
+              <ul className={`divide-y bg-card ${minimal ? "border-y" : "rounded-lg border"}`}>
                 {listing.files.map((file) => (
                   <FileRow
                     key={file.id}

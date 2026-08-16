@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const OPTIONS: { id: Density; label: string; hint: string }[] = [
+  { id: "minimal", label: "Minimal", hint: "Tight rows for long file lists" },
   { id: "compact", label: "Compact", hint: "Icons; search and upload on demand" },
   { id: "wide", label: "Wide", hint: "Full toolbar and dropzone" },
 ];

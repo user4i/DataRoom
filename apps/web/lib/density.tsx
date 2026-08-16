@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from "react";
 
-export type Density = "compact" | "wide";
+export type Density = "minimal" | "compact" | "wide";
 
 const STORAGE_KEY = "dataroom-density";
 
@@ -19,7 +19,7 @@ export function DensityProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    if (stored === "compact" || stored === "wide") setDensityState(stored);
+    if (stored === "minimal" || stored === "compact" || stored === "wide") setDensityState(stored);
   }, []);
 
   const setDensity = (value: Density) => {
@@ -32,4 +32,16 @@ export function DensityProvider({ children }: { children: React.ReactNode }) {
 
 export function useDensity() {
   return useContext(DensityContext);
+}
+
+export function useDensityFlags() {
+  const { density, setDensity } = useDensity();
+  return {
+    density,
+    setDensity,
+    wide: density === "wide",
+    compact: density === "compact",
+    minimal: density === "minimal",
+    dense: density !== "wide",
+  };
 }

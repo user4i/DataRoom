@@ -2,14 +2,16 @@
 
 import Link from "next/link";
 import { useAuth } from "@/lib/auth";
+import { useDensityFlags } from "@/lib/density";
 import { Button } from "@/components/ui/button";
 import { DensityMenu } from "@/components/density-menu";
 
 export function AppHeader({ title }: { title?: string }) {
   const { user, logout } = useAuth();
+  const { minimal } = useDensityFlags();
   return (
     <header className="border-b bg-card">
-      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
+      <div className={`mx-auto flex max-w-6xl items-center justify-between px-4 ${minimal ? "h-11" : "h-14"}`}>
         <div className="flex items-center gap-3">
           <Link href="/rooms" className="font-semibold tracking-tight">
             Data Room
