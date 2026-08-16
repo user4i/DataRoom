@@ -270,9 +270,20 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 **AI usage -- partially.**
 *My part -- partially.*
 
-8. Thinking part personal check and Deliverables (in process)
+8. Thinking part personal double check and Deliverables, optimization (in process)
+
+**AI usage -- partially.**
+*My part -- partially.*
 
 9. Extra credit (in process)
+
+**AI usage -- partially.**
+*My part -- partially.*
+
+10. Most commits by AI
+
+**AI usage -- commit message, commit.**
+*My part -- check code, especially from starting base version optimization.*
 
 ## Time spending
 
