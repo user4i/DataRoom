@@ -68,7 +68,7 @@ export function UploadDropzone({
         setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, ...patch } : it)));
       try {
         if (item.file.type && item.file.type !== "application/pdf" && !item.file.name.toLowerCase().endsWith(".pdf")) {
-          throw new Error("Only PDF files are allowed");
+          throw new Error("Дозволені лише файли PDF");
         }
         update({ status: "uploading", progress: 5 });
         const presign = await api<{ storageKey: string; uploadUrl: string }>("/files/presign", {
@@ -97,7 +97,7 @@ export function UploadDropzone({
         update({ status: "done", progress: 100 });
         onUploaded(created);
       } catch (error) {
-        const message = error instanceof ApiError || error instanceof Error ? error.message : "Upload failed";
+        const message = error instanceof ApiError || error instanceof Error ? error.message : "Не вдалося завантажити";
         update({ status: "error", error: message });
         toast.error(message);
       }
@@ -155,7 +155,7 @@ export function UploadDropzone({
         }
         await uploadOne(item, item.file.name);
       } catch (error) {
-        const message = error instanceof ApiError || error instanceof Error ? error.message : "Upload failed";
+        const message = error instanceof ApiError || error instanceof Error ? error.message : "Не вдалося завантажити";
         update({ status: "error", error: message });
         toast.error(message);
       }
@@ -196,8 +196,8 @@ export function UploadDropzone({
           compact ? "px-4 py-4" : "px-6 py-8"
         } ${drag ? "border-primary bg-accent" : "bg-card hover:bg-accent/40"}`}
       >
-        <p className="font-medium">Drop PDFs here or click to upload</p>
-        <p className="mt-1 text-sm text-muted-foreground">Multiple files supported · PDF only · max 50 MB each</p>
+        <p className="font-medium">Перетягніть PDF сюди або натисніть, щоб завантажити</p>
+        <p className="mt-1 text-sm text-muted-foreground">Можна кілька файлів · лише PDF · до 50 МБ кожен</p>
         <input
           type="file"
           accept="application/pdf,.pdf"
@@ -217,13 +217,13 @@ export function UploadDropzone({
                 <span className="truncate font-medium">{item.file.name}</span>
                 <span className="text-muted-foreground">
                   {item.status === "done"
-                    ? "Uploaded"
+                    ? "Завантажено"
                     : item.status === "skipped"
-                      ? "Skipped"
+                      ? "Пропущено"
                       : item.status === "error"
                         ? item.error
                         : conflict?.incomingName === item.file.name
-                          ? "Waiting…"
+                          ? "Очікування…"
                           : `${item.progress}%`}
                 </span>
               </div>
@@ -236,7 +236,7 @@ export function UploadDropzone({
       ) : null}
       {items.some((i) => i.status === "error" || i.status === "done" || i.status === "skipped") ? (
         <Button variant="ghost" size="sm" onClick={() => setItems([])}>
-          Clear list
+          Очистити список
         </Button>
       ) : null}
       <UploadConflictDialog
@@ -257,9 +257,9 @@ function putWithProgress(url: string, file: File, onProgress: (pct: number) => v
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error("Could not store the file"));
+      else reject(new Error("Не вдалося зберегти файл"));
     };
-    xhr.onerror = () => reject(new Error(`Could not reach storage (${API_URL})`));
+    xhr.onerror = () => reject(new Error(`Не вдалося з’єднатися зі сховищем (${API_URL})`));
     xhr.send(file);
   });
 }

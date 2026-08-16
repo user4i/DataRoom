@@ -27,7 +27,7 @@ export default function RegisterPage() {
       startNavigation();
       router.replace("/rooms");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not create account");
+      toast.error(err instanceof ApiError ? err.message : "Не вдалося створити обліковий запис");
     } finally {
       setBusy(false);
     }
@@ -35,11 +35,11 @@ export default function RegisterPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="text-2xl font-semibold">Create account</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Email and password. No Google sign-in in this MVP.</p>
+      <h1 className="text-2xl font-semibold">Реєстрація</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Email і пароль. У цьому MVP немає входу через Google.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
-          <Label htmlFor="name">Name</Label>
+          <Label htmlFor="name">Ім’я</Label>
           <Input id="name" required value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="space-y-2">
@@ -47,17 +47,17 @@ export default function RegisterPage() {
           <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password (min 8 characters)</Label>
+          <Label htmlFor="password">Пароль (мінімум 8 символів)</Label>
           <Input id="password" type="password" required minLength={8} value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Creating…" : "Create account"}
+          {busy ? "Створення…" : "Створити обліковий запис"}
         </Button>
       </form>
       <p className="mt-4 text-sm text-muted-foreground">
-        Already have an account?{" "}
+        Уже є обліковий запис?{" "}
         <Link className="text-foreground underline" href="/login">
-          Sign in
+          Увійти
         </Link>
       </p>
     </main>

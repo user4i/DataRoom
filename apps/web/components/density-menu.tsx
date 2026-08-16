@@ -12,9 +12,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const OPTIONS: { id: Density; label: string; hint: string }[] = [
-  { id: "minimal", label: "Minimal", hint: "Tight rows for long file lists" },
-  { id: "compact", label: "Compact", hint: "Icons; search and upload on demand" },
-  { id: "wide", label: "Wide", hint: "Full toolbar and dropzone" },
+  { id: "minimal", label: "Мінімальний", hint: "Щільні рядки для довгих списків файлів" },
+  { id: "compact", label: "Компактний", hint: "Іконки; пошук і завантаження за потреби" },
+  { id: "wide", label: "Широкий", hint: "Повна панель і зона завантаження" },
 ];
 
 export function DensityMenu() {
@@ -22,12 +22,12 @@ export function DensityMenu() {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Layout density">
+        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Щільність макета">
           <LayoutTemplate className="size-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-64">
-        <DropdownMenuLabel>Layout</DropdownMenuLabel>
+        <DropdownMenuLabel>Макет</DropdownMenuLabel>
         {OPTIONS.map((option) => (
           <DropdownMenuItem key={option.id} onClick={() => setDensity(option.id)}>
             <span className="flex size-4 items-center justify-center">

@@ -7,7 +7,7 @@ import { Explorer } from "@/components/Explorer";
 export default function PublicSharePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
   return (
-    <ExplorerShell title="Shared link">
+    <ExplorerShell title="Спільне посилання">
       <Explorer publicToken={token} />
     </ExplorerShell>
   );

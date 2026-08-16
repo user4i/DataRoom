@@ -49,7 +49,7 @@ async function apiRequest<T>(
   try {
     res = await fetch(`${API_URL}${path}`, { ...options, headers });
   } catch {
-    throw new ApiError(0, "Network error. Check your connection.");
+    throw new ApiError(0, "Помилка мережі. Перевірте з’єднання.");
   }
 
   if (res.status === 204) return undefined as T;
@@ -68,9 +68,9 @@ async function apiRequest<T>(
 }
 
 function statusMessage(status: number, fallback: string) {
-  if (status === 401) return fallback || "Please sign in";
-  if (status === 403) return fallback || "You do not have access to this item";
-  if (status === 404) return fallback || "This item is no longer available";
-  if (status === 409) return fallback || "An item with this name already exists here";
+  if (status === 401) return fallback || "Увійдіть у систему";
+  if (status === 403) return fallback || "У вас немає доступу до цього елемента";
+  if (status === 404) return fallback || "Цей елемент більше недоступний";
+  if (status === 409) return fallback || "Елемент із такою назвою вже існує тут";
   return fallback;
 }

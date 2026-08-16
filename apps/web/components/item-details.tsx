@@ -51,9 +51,9 @@ export function detailsFromFile(
 }
 
 function typeLabel(details: ItemDetails) {
-  if (details.kind === "folder") return "Folder";
-  if (details.mimeType === "application/pdf" || details.name.toLowerCase().endsWith(".pdf")) return "PDF document";
-  return details.mimeType || "File";
+  if (details.kind === "folder") return "Папка";
+  if (details.mimeType === "application/pdf" || details.name.toLowerCase().endsWith(".pdf")) return "Документ PDF";
+  return details.mimeType || "Файл";
 }
 
 export function ItemDetailsList({ details }: { details: ItemDetails }) {
@@ -64,16 +64,16 @@ export function ItemDetailsList({ details }: { details: ItemDetails }) {
     : undefined;
 
   const rows: { label: string; value: string }[] = [
-    { label: "Type", value: typeLabel(details) },
-    { label: "Size", value: formatBytes(details.size) },
-    ...(details.kind === "folder" ? [{ label: "Items", value: String(details.itemCount ?? 0) }] : []),
+    { label: "Тип", value: typeLabel(details) },
+    { label: "Розмір", value: formatBytes(details.size) },
+    ...(details.kind === "folder" ? [{ label: "Елементи", value: String(details.itemCount ?? 0) }] : []),
     ...(details.kind === "file" && details.versionCount
-      ? [{ label: "Versions", value: String(details.versionCount) }]
+      ? [{ label: "Версії", value: String(details.versionCount) }]
       : []),
-    ...(details.location ? [{ label: "Location", value: details.location }] : []),
-    { label: "Created", value: formatDateTime(details.createdAt) },
-    { label: "Modified", value: formatDateTime(details.updatedAt) },
-    ...(ownerLabel ? [{ label: "Owner", value: ownerLabel }] : []),
+    ...(details.location ? [{ label: "Розташування", value: details.location }] : []),
+    { label: "Створено", value: formatDateTime(details.createdAt) },
+    { label: "Змінено", value: formatDateTime(details.updatedAt) },
+    ...(ownerLabel ? [{ label: "Власник", value: ownerLabel }] : []),
   ];
 
   return (
@@ -101,7 +101,7 @@ export function ItemDetailsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="pr-6">{details ? `Details · ${details.name}` : "Details"}</DialogTitle>
+          <DialogTitle className="pr-6">{details ? `Деталі · ${details.name}` : "Деталі"}</DialogTitle>
         </DialogHeader>
         {details ? <ItemDetailsList details={details} /> : null}
       </DialogContent>

@@ -46,7 +46,7 @@ export function DevCommands() {
       );
       window.location.reload();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Seed failed", { id: toastId });
+      toast.error(err instanceof ApiError ? err.message : "Не вдалося наповнити", { id: toastId });
       setBusy(false);
     }
   };

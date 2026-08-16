@@ -57,16 +57,16 @@ export function FileRow({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onOpen(file)}>View</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDetails(file)}>Details</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onOpen(file)}>Переглянути</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDetails(file)}>Деталі</DropdownMenuItem>
           {canEdit ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onRename(file)}>Rename</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMove(file)}>Move</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onShare(file)}>Share</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRename(file)}>Перейменувати</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onMove(file)}>Перемістити</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onShare(file)}>Поділитися</DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => onDelete(file)}>
-                Delete
+                Видалити
               </DropdownMenuItem>
             </>
           ) : null}

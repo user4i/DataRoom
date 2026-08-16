@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useDensityFlags } from "@/lib/density";
-import { formatBytes, formatDateTime } from "@/lib/format";
+import { formatBytes, formatDateTime, ukPlural } from "@/lib/format";
 
 export function FolderList({
   folders,
@@ -35,7 +35,7 @@ export function FolderList({
   return (
     <div className={minimal ? "space-y-0" : "space-y-1"}>
       {minimal ? null : (
-        <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Folders</p>
+        <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Папки</p>
       )}
       <ul className={`divide-y bg-card ${minimal ? "border-y" : "rounded-lg border"}`}>
         {folders.map((folder) => (
@@ -49,7 +49,7 @@ export function FolderList({
                 <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{folder.name}</p>
                 {minimal ? null : (
                 <p className="text-xs text-muted-foreground">
-                  {folder.itemCount} items · {formatBytes(folder.totalSize)}
+                  {ukPlural(folder.itemCount, "елемент", "елементи", "елементів")} · {formatBytes(folder.totalSize)}
                   {!dense && folder.createdAt ? ` · ${formatDateTime(folder.createdAt)}` : ""}
                 </p>
                 )}
@@ -62,15 +62,15 @@ export function FolderList({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onOpen(folder)}>Open</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDetails(folder)}>Details</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onOpen(folder)}>Відкрити</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDetails(folder)}>Деталі</DropdownMenuItem>
                 {canEdit ? (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onRename(folder)}>Rename</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onShare(folder)}>Share</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onRename(folder)}>Перейменувати</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onShare(folder)}>Поділитися</DropdownMenuItem>
                     <DropdownMenuItem variant="destructive" onClick={() => onDelete(folder)}>
-                      Delete
+                      Видалити
                     </DropdownMenuItem>
                   </>
                 ) : null}

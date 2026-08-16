@@ -50,11 +50,11 @@ export function UploadConflictDialog({
 
   const options: { id: ConflictAction; title: string; hint: string }[] = conflict
     ? [
-        { id: "replace", title: "Replace the existing file", hint: "The current file is kept as a previous version." },
-        { id: "keep_both", title: "Keep both", hint: `Upload the new file as “${conflict.suggestedNewName}”.` },
-        { id: "rename_new", title: "Rename the new file", hint: "Choose a name for the file you are uploading." },
-        { id: "rename_old", title: "Rename the existing file", hint: "Free the original name for the new upload." },
-        { id: "rename_both", title: "Rename both files", hint: "Give each file a new name." },
+        { id: "replace", title: "Замінити наявний файл", hint: "Поточний файл збережеться як попередня версія." },
+        { id: "keep_both", title: "Залишити обидва", hint: `Завантажити новий файл як «${conflict.suggestedNewName}».` },
+        { id: "rename_new", title: "Перейменувати новий файл", hint: "Оберіть назву для файлу, який завантажуєте." },
+        { id: "rename_old", title: "Перейменувати наявний файл", hint: "Звільнити оригінальну назву для нового завантаження." },
+        { id: "rename_both", title: "Перейменувати обидва файли", hint: "Дайте кожному файлу нову назву." },
       ]
     : [];
 
@@ -78,9 +78,9 @@ export function UploadConflictDialog({
     <Dialog open={Boolean(conflict)} onOpenChange={(open) => !open && onResolve({ action: "skip" })}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>File already exists</DialogTitle>
+          <DialogTitle>Файл уже існує</DialogTitle>
           <DialogDescription>
-            A file named “{conflict?.incomingName}” is already in this folder. Choose what to do with the new upload.
+            Файл із назвою «{conflict?.incomingName}» уже є в цій папці. Оберіть, що зробити з новим завантаженням.
           </DialogDescription>
         </DialogHeader>
         <fieldset className="space-y-2">
@@ -114,13 +114,13 @@ export function UploadConflictDialog({
         </fieldset>
         {action === "rename_new" || action === "rename_both" ? (
           <div className="space-y-1.5">
-            <Label htmlFor="conflict-new-name">New file name</Label>
+            <Label htmlFor="conflict-new-name">Назва нового файлу</Label>
             <Input id="conflict-new-name" value={newName} onChange={(e) => setNewName(e.target.value)} />
           </div>
         ) : null}
         {action === "rename_old" || action === "rename_both" ? (
           <div className="space-y-1.5">
-            <Label htmlFor="conflict-old-name">Existing file name</Label>
+            <Label htmlFor="conflict-old-name">Назва наявного файлу</Label>
             <Input
               id="conflict-old-name"
               value={oldName}
@@ -130,10 +130,10 @@ export function UploadConflictDialog({
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onResolve({ action: "skip" })}>
-            Skip
+            Пропустити
           </Button>
           <Button disabled={!continueEnabled} onClick={submit}>
-            Continue
+            Продовжити
           </Button>
         </DialogFooter>
       </DialogContent>

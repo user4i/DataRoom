@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 
 export function rethrowUnique(
   error: unknown,
-  message = 'An item with this name already exists here',
+  message = 'Елемент із такою назвою вже існує тут',
 ): never {
   if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
     throw new ConflictException(message);

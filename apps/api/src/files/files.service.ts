@@ -26,10 +26,10 @@ export class FilesService {
     const mime = mimeType.toLowerCase();
     const lower = name.toLowerCase();
     if (mime !== PDF && mime !== 'application/x-pdf') {
-      throw new BadRequestException('Only PDF files are allowed');
+      throw new BadRequestException('Дозволені лише файли PDF');
     }
     if (!lower.endsWith('.pdf')) {
-      throw new BadRequestException('File name must end with .pdf');
+      throw new BadRequestException('Назва файлу має закінчуватися на .pdf');
     }
   }
 
@@ -64,7 +64,7 @@ export class FilesService {
   async nameConflict(userId: string, dataRoomId: string, folderId: string | null, name: string) {
     await this.access.assertCanEdit(userId, dataRoomId);
     const trimmed = name.trim();
-    if (!trimmed) throw new BadRequestException('File name is required');
+    if (!trimmed) throw new BadRequestException('Потрібна назва файлу');
     const existing = await this.prisma.file.findFirst({
       where: {
         dataRoomId,
@@ -89,7 +89,7 @@ export class FilesService {
     if (dto.folderId) {
       const folder = await this.access.getFolderOrThrow(dto.folderId);
       if (folder.dataRoomId !== dto.dataRoomId) {
-        throw new NotFoundException('Folder not found');
+        throw new NotFoundException('Папку не знайдено');
       }
     }
     const storageKey = `rooms/${dto.dataRoomId}/${randomUUID()}.pdf`;
@@ -103,12 +103,12 @@ export class FilesService {
     if (folderId) {
       const folder = await this.access.getFolderOrThrow(folderId);
       if (folder.dataRoomId !== dto.dataRoomId) {
-        throw new NotFoundException('Folder not found');
+        throw new NotFoundException('Папку не знайдено');
       }
     }
 
     if (this.storage.driver() === 'local' && !this.storage.existsLocal(dto.storageKey)) {
-      throw new BadRequestException('Upload did not complete');
+      throw new BadRequestException('Завантаження не завершилося');
     }
 
     const name = dto.name.trim();
@@ -126,7 +126,7 @@ export class FilesService {
       if (dto.conflict === 'keep_both') {
         return this.createFile(dto.dataRoomId, folderId, await this.uniqueName(dto.dataRoomId, folderId, name), dto);
       }
-      throw new ConflictException('A file with this name already exists here');
+      throw new ConflictException('Файл із такою назвою вже існує тут');
     }
     return this.createFile(dto.dataRoomId, folderId, name, dto);
   }
@@ -165,7 +165,7 @@ export class FilesService {
       });
       return serializeFile(file);
     } catch (error) {
-      rethrowUnique(error, 'A file with this name already exists here');
+      rethrowUnique(error, 'Файл із такою назвою вже існує тут');
     }
   }
 
@@ -205,7 +205,7 @@ export class FilesService {
         });
         return serializeFile(updated);
       } catch (error) {
-        rethrowUnique(error, 'A file with this name already exists here');
+        rethrowUnique(error, 'Файл із такою назвою вже існує тут');
       }
     }
 
@@ -214,7 +214,7 @@ export class FilesService {
       if (nextFolderId) {
         const dest = await this.access.getFolderOrThrow(nextFolderId);
         if (dest.dataRoomId !== file.dataRoomId) {
-          throw new NotFoundException('Destination folder not found');
+          throw new NotFoundException('Папку призначення не знайдено');
         }
       }
       try {
@@ -250,7 +250,7 @@ export class FilesService {
         });
         return serializeFile(updated);
       } catch (error) {
-        rethrowUnique(error, 'A file with this name already exists in the destination');
+        rethrowUnique(error, 'Файл із такою назвою вже існує в призначенні');
       }
     }
 
@@ -399,7 +399,7 @@ export class FilesService {
     const file = await this.access.getFileOrThrow(fileId);
     await this.access.assertCanView({ userId, dataRoomId: file.dataRoomId, fileId: file.id });
     const version = await this.prisma.fileVersion.findFirst({ where: { id: versionId, fileId } });
-    if (!version) throw new NotFoundException('Version not found');
+    if (!version) throw new NotFoundException('Версію не знайдено');
     const url = await this.storage.signDownload(version.storageKey, file.name);
     return { url, version: version.version, size: version.size.toString() };
   }

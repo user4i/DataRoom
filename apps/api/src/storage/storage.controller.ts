@@ -17,19 +17,19 @@ export class StorageController {
 
   @Put('upload')
   async upload(@Query('token') token: string, @Req() req: Request, @Res() res: Response) {
-    if (!token) throw new UnauthorizedException('Upload token required');
+    if (!token) throw new UnauthorizedException('Потрібен токен завантаження');
     let storageKey: string;
     try {
       storageKey = this.storage.verifyUploadToken(token);
     } catch {
-      throw new UnauthorizedException('Upload token is invalid or expired');
+      throw new UnauthorizedException('Токен завантаження недійсний або прострочений');
     }
     const body = req.body;
     if (!Buffer.isBuffer(body) || body.length === 0) {
-      throw new BadRequestException('Empty upload body');
+      throw new BadRequestException('Порожнє тіло завантаження');
     }
     if (body.length > 50 * 1024 * 1024) {
-      throw new BadRequestException('File is too large (max 50 MB)');
+      throw new BadRequestException('Файл завеликий (макс. 50 МБ)');
     }
     await this.storage.saveLocal(storageKey, body);
     res.status(200).json({ ok: true, storageKey });
@@ -37,15 +37,15 @@ export class StorageController {
 
   @Get('download')
   async download(@Query('token') token: string, @Res() res: Response) {
-    if (!token) throw new UnauthorizedException('Download token required');
+    if (!token) throw new UnauthorizedException('Потрібен токен завантаження файлу');
     let payload: { storageKey: string; filename?: string };
     try {
       payload = this.storage.verifyDownloadToken(token);
     } catch {
-      throw new UnauthorizedException('Download token is invalid or expired');
+      throw new UnauthorizedException('Токен завантаження файлу недійсний або прострочений');
     }
     const stream = this.storage.openLocal(payload.storageKey);
-    if (!stream) throw new BadRequestException('File is not available');
+    if (!stream) throw new BadRequestException('Файл недоступний');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',

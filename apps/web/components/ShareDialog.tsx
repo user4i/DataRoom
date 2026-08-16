@@ -31,7 +31,7 @@ export function ShareDialog({
       const data = await api<ShareDto[]>(`/shares?resourceType=${resourceType}&resourceId=${resourceId}`);
       setShares(data);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not load shares");
+      toast.error(error instanceof ApiError ? error.message : "Не вдалося завантажити доступ");
     }
   };
 
@@ -47,13 +47,13 @@ export function ShareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Share</DialogTitle>
-          <DialogDescription>Anyone with access can view this item and its nested contents. Recipients are read-only.</DialogDescription>
+          <DialogTitle>Спільний доступ</DialogTitle>
+          <DialogDescription>Той, хто має доступ, може переглядати цей елемент і вкладений вміст. Отримувачі мають лише перегляд.</DialogDescription>
         </DialogHeader>
         <Tabs defaultValue="link">
           <TabsList>
-            <TabsTrigger value="link">Link</TabsTrigger>
-            <TabsTrigger value="people">People</TabsTrigger>
+            <TabsTrigger value="link">Посилання</TabsTrigger>
+            <TabsTrigger value="people">Люди</TabsTrigger>
           </TabsList>
           <TabsContent value="link" className="space-y-3">
             {publicShare?.token ? (
@@ -64,22 +64,22 @@ export function ShareDialog({
                     onClick={async () => {
                       await navigator.clipboard.writeText(`${origin}/s/${publicShare.token}`);
                       setCopied(true);
-                      toast.success("Link copied");
+                      toast.success("Посилання скопійовано");
                       setTimeout(() => setCopied(false), 1500);
                     }}
                   >
-                    {copied ? "Copied" : "Copy link"}
+                    {copied ? "Скопійовано" : "Копіювати посилання"}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={async () => {
-                      if (!confirm("Revoke this public link?")) return;
+                      if (!confirm("Скасувати це публічне посилання?")) return;
                       await api(`/shares/${publicShare.id}`, { method: "DELETE" });
-                      toast.success("Link revoked");
+                      toast.success("Посилання скасовано");
                       await load();
                     }}
                   >
-                    Revoke
+                    Скасувати
                   </Button>
                 </div>
               </>
@@ -93,11 +93,11 @@ export function ShareDialog({
                     });
                     await load();
                   } catch (error) {
-                    toast.error(error instanceof ApiError ? error.message : "Could not create link");
+                    toast.error(error instanceof ApiError ? error.message : "Не вдалося створити посилання");
                   }
                 }}
               >
-                Create public link
+                Створити публічне посилання
               </Button>
             )}
           </TabsContent>
@@ -122,37 +122,37 @@ export function ShareDialog({
                       body: JSON.stringify({ resourceType, resourceId, kind: "USER", email }),
                     });
                     setEmail("");
-                    toast.success("Invite sent");
+                    toast.success("Запрошення надіслано");
                     await load();
                   } catch (error) {
-                    toast.error(error instanceof ApiError ? error.message : "Could not share");
+                    toast.error(error instanceof ApiError ? error.message : "Не вдалося поділитися");
                   }
                 }}
               >
-                Invite
+                Запросити
               </Button>
             </div>
             {people.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No people yet. Pending invites appear after you add an email.</p>
+              <p className="text-sm text-muted-foreground">Поки нікого немає. Очікувані запрошення з’являться після додавання email.</p>
             ) : (
               <ul className="space-y-2">
                 {people.map((share) => (
                   <li key={share.id} className="flex items-center justify-between rounded-md border px-3 py-2 text-sm">
                     <span>
                       {share.user?.email || share.invitedEmail}
-                      {!share.userId ? <span className="ml-2 text-muted-foreground">(pending)</span> : null}
+                      {!share.userId ? <span className="ml-2 text-muted-foreground">(очікує)</span> : null}
                     </span>
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={async () => {
-                        if (!confirm("Revoke this person's access?")) return;
+                        if (!confirm("Скасувати доступ цієї людини?")) return;
                         await api(`/shares/${share.id}`, { method: "DELETE" });
-                        toast.success("Access revoked");
+                        toast.success("Доступ скасовано");
                         await load();
                       }}
                     >
-                      Revoke
+                      Скасувати
                     </Button>
                   </li>
                 ))}
@@ -162,7 +162,7 @@ export function ShareDialog({
         </Tabs>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
+            Закрити
           </Button>
         </DialogFooter>
       </DialogContent>

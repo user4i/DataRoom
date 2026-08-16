@@ -32,7 +32,7 @@ export function MoveFileDialog({
       const data = await api<Node[]>(`/data-rooms/${dataRoomId}/folder-tree${q}`);
       setFolders(data);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Could not load folders");
+      toast.error(error instanceof ApiError ? error.message : "Не вдалося завантажити папки");
     }
   };
 
@@ -49,7 +49,7 @@ export function MoveFileDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Move file</DialogTitle>
+          <DialogTitle>Перемістити файл</DialogTitle>
         </DialogHeader>
         <div className="flex flex-wrap gap-1 text-sm text-muted-foreground">
           {crumbs.map((c, i) => (
@@ -71,7 +71,7 @@ export function MoveFileDialog({
         </div>
         <ul className="max-h-64 divide-y overflow-auto rounded-md border">
           {folders.length === 0 ? (
-            <li className="px-3 py-6 text-center text-sm text-muted-foreground">No subfolders here</li>
+            <li className="px-3 py-6 text-center text-sm text-muted-foreground">Тут немає вкладених папок</li>
           ) : (
             folders.map((folder) => (
               <li key={folder.id}>
@@ -92,7 +92,7 @@ export function MoveFileDialog({
         </ul>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            Скасувати
           </Button>
           <Button
             disabled={busy}
@@ -102,13 +102,13 @@ export function MoveFileDialog({
                 await onMove(parentId);
                 onOpenChange(false);
               } catch (error) {
-                toast.error(error instanceof ApiError ? error.message : "Could not move file");
+                toast.error(error instanceof ApiError ? error.message : "Не вдалося перемістити файл");
               } finally {
                 setBusy(false);
               }
             }}
           >
-            Move here
+            Перемістити сюди
           </Button>
         </DialogFooter>
       </DialogContent>

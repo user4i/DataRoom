@@ -43,10 +43,10 @@ export function FileViewer({
       .catch((err) => {
         const message =
           err instanceof ApiError && (err.status === 404 || err.status === 403)
-            ? "This item is no longer available"
+            ? "Цей елемент більше недоступний"
             : err instanceof Error
               ? err.message
-              : "Could not open file";
+              : "Не вдалося відкрити файл";
         setError(message);
         toast.error(message);
       });
@@ -61,10 +61,10 @@ export function FileViewer({
       ? `/rooms/${roomId}/f/${parentFolderId}`
       : `/rooms/${roomId}`;
   const backLabel = publicToken
-    ? "Back to shared folder"
+    ? "Назад до спільної папки"
     : parentFolderId
-      ? "Back to folder"
-      : "Back to room";
+      ? "Назад до папки"
+      : "Назад до кімнати";
 
   return (
     <div className="min-h-screen">
@@ -84,7 +84,7 @@ export function FileViewer({
           <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
             <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-white" />
             <aside className="rounded-lg border bg-card p-4">
-              <h2 className="mb-3 text-sm font-medium">Details</h2>
+              <h2 className="mb-3 text-sm font-medium">Деталі</h2>
               <ItemDetailsList
                 details={detailsFromFile(data.file, {
                   location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
@@ -95,12 +95,12 @@ export function FileViewer({
         ) : null}
         {versions.length > 0 ? (
           <section className="mt-6">
-            <h2 className="text-sm font-medium">Previous versions</h2>
+            <h2 className="text-sm font-medium">Попередні версії</h2>
             <ul className="mt-2 divide-y rounded-lg border bg-card text-sm">
               {versions.map((v) => (
                 <li key={v.id} className="flex items-center justify-between px-3 py-2">
                   <span className="text-muted-foreground">
-                    Version {v.version} · {formatDateTime(v.createdAt)}
+                    Версія {v.version} · {formatDateTime(v.createdAt)}
                   </span>
                   <Button
                     variant="outline"
@@ -110,11 +110,11 @@ export function FileViewer({
                         const res = await api<{ url: string }>(`/files/${fileId}/versions/${v.id}`);
                         setData((d) => (d ? { ...d, url: res.url } : d));
                       } catch (err) {
-                        toast.error(err instanceof Error ? err.message : "Could not open version");
+                        toast.error(err instanceof Error ? err.message : "Не вдалося відкрити версію");
                       }
                     }}
                   >
-                    View
+                    Переглянути
                   </Button>
                 </li>
               ))}

@@ -39,7 +39,7 @@ function RoomsInner() {
   };
 
   useEffect(() => {
-    load().catch((err) => toast.error(err instanceof ApiError ? err.message : "Could not load rooms"));
+    load().catch((err) => toast.error(err instanceof ApiError ? err.message : "Не вдалося завантажити кімнати"));
   }, []);
 
   return (
@@ -47,16 +47,16 @@ function RoomsInner() {
       <AppHeader />
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Data rooms</h1>
-          <Button onClick={() => setOpen(true)}>New data room</Button>
+          <h1 className="text-2xl font-semibold">Кімнати даних</h1>
+          <Button onClick={() => setOpen(true)}>Нова кімната</Button>
         </div>
         {!owned ? (
           <Skeleton className="h-40 w-full" />
         ) : owned.length === 0 ? (
           <EmptyState
-            title="No data rooms yet"
-            description="Create a room to start adding folders and PDFs."
-            action={<Button onClick={() => setOpen(true)}>Create your first room</Button>}
+            title="Ще немає кімнат"
+            description="Створіть кімнату, щоб додавати папки та PDF."
+            action={<Button onClick={() => setOpen(true)}>Створити першу кімнату</Button>}
           />
         ) : (
           <RoomGrid
@@ -68,21 +68,21 @@ function RoomsInner() {
             }}
             onRename={setRename}
             onDelete={async (room) => {
-              if (!confirm(`Delete data room “${room.name}”? All folders and files inside will be removed.`)) return;
+              if (!confirm(`Видалити кімнату «${room.name}»? Усі папки і файли всередині буде видалено.`)) return;
               try {
                 await api(`/data-rooms/${room.id}`, { method: "DELETE" });
-                toast.success("Data room deleted");
+                toast.success("Кімнату видалено");
                 await load();
               } catch (err) {
-                toast.error(err instanceof ApiError ? err.message : "Could not delete");
+                toast.error(err instanceof ApiError ? err.message : "Не вдалося видалити");
               }
             }}
           />
         )}
         <section>
-          <h2 className="mb-3 text-lg font-medium">Shared with me</h2>
+          <h2 className="mb-3 text-lg font-medium">Поділилися зі мною</h2>
           {shared.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Nothing has been shared with this account yet.</p>
+            <p className="text-sm text-muted-foreground">З цим обліковим записом ще нічого не поділилися.</p>
           ) : (
             <RoomGrid
               rooms={shared}
@@ -99,13 +99,13 @@ function RoomsInner() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>New data room</DialogTitle>
+            <DialogTitle>Нова кімната</DialogTitle>
           </DialogHeader>
-          <Label htmlFor="room-name">Name</Label>
+          <Label htmlFor="room-name">Назва</Label>
           <Input id="room-name" value={name} onChange={(e) => setName(e.target.value)} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
+              Скасувати
             </Button>
             <Button
               onClick={async () => {
@@ -116,11 +116,11 @@ function RoomsInner() {
                   startNavigation();
                   router.push(`/rooms/${room.id}`);
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Could not create room");
+                  toast.error(err instanceof ApiError ? err.message : "Не вдалося створити кімнату");
                 }
               }}
             >
-              Create
+              Створити
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -129,12 +129,12 @@ function RoomsInner() {
       <Dialog open={Boolean(rename)} onOpenChange={(v) => !v && setRename(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Rename data room</DialogTitle>
+            <DialogTitle>Перейменувати кімнату</DialogTitle>
           </DialogHeader>
           <Input value={rename?.name ?? ""} onChange={(e) => setRename((r) => (r ? { ...r, name: e.target.value } : r))} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRename(null)}>
-              Cancel
+              Скасувати
             </Button>
             <Button
               onClick={async () => {
@@ -144,11 +144,11 @@ function RoomsInner() {
                   setRename(null);
                   await load();
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Could not rename");
+                  toast.error(err instanceof ApiError ? err.message : "Не вдалося перейменувати");
                 }
               }}
             >
-              Save
+              Зберегти
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -176,20 +176,20 @@ function RoomGrid({
         <li key={room.id} className="rounded-xl border bg-card p-4">
           <button type="button" className="w-full text-left" onClick={() => onOpen(room.id)}>
             <p className="font-medium">{room.name}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{room.access === "OWNER" ? "Owned by you" : `Shared by ${room.owner?.name ?? "owner"}`}</p>
+            <p className="mt-1 text-xs text-muted-foreground">{room.access === "OWNER" ? "Ваша кімната" : `Поділився ${room.owner?.name ?? "власник"}`}</p>
           </button>
           {canEdit ? (
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="outline" onClick={() => onRename?.(room)}>
-                Rename
+                Перейменувати
               </Button>
               <Button size="sm" variant="outline" onClick={() => onDelete?.(room)}>
-                Delete
+                Видалити
               </Button>
             </div>
           ) : (
             <Button asChild size="sm" variant="outline" className="mt-3">
-              <Link href={`/rooms/${room.id}`}>Open</Link>
+              <Link href={`/rooms/${room.id}`}>Відкрити</Link>
             </Button>
           )}
         </li>

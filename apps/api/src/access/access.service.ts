@@ -16,26 +16,26 @@ export class AccessService {
       where: { id },
       include: { owner: { select: { id: true, email: true, name: true } } },
     });
-    if (!room) throw new NotFoundException('Data room not found');
+    if (!room) throw new NotFoundException('Кімнату даних не знайдено');
     return room;
   }
 
   async getFolderOrThrow(id: string) {
     const folder = await this.prisma.folder.findUnique({ where: { id } });
-    if (!folder) throw new NotFoundException('This item is no longer available');
+    if (!folder) throw new NotFoundException('Цей елемент більше недоступний');
     return folder;
   }
 
   async getFileOrThrow(id: string) {
     const file = await this.prisma.file.findUnique({ where: { id } });
-    if (!file) throw new NotFoundException('This item is no longer available');
+    if (!file) throw new NotFoundException('Цей елемент більше недоступний');
     return file;
   }
 
   async assertCanEdit(userId: string, dataRoomId: string) {
     const room = await this.getRoomOrThrow(dataRoomId);
     if (room.ownerId !== userId) {
-      throw new ForbiddenException('Only the owner can make changes');
+      throw new ForbiddenException('Лише власник може вносити зміни');
     }
     return room;
   }
@@ -60,7 +60,7 @@ export class AccessService {
     if (params.fileId) {
       const file = await this.getFileOrThrow(params.fileId);
       if (file.dataRoomId !== room.id) {
-        throw new NotFoundException('This item is no longer available');
+        throw new NotFoundException('Цей елемент більше недоступний');
       }
       targets.push({ resourceType: 'FILE', resourceId: file.id });
       folderId = folderId ?? file.folderId;
@@ -69,7 +69,7 @@ export class AccessService {
     if (folderId) {
       const folder = await this.getFolderOrThrow(folderId);
       if (folder.dataRoomId !== room.id) {
-        throw new NotFoundException('This item is no longer available');
+        throw new NotFoundException('Цей елемент більше недоступний');
       }
       for (const id of ancestorIdsFromPath(folder.path)) {
         targets.push({ resourceType: 'FOLDER', resourceId: id });
@@ -89,7 +89,7 @@ export class AccessService {
     }
 
     if (identity.length === 0) {
-      throw new ForbiddenException('You do not have access to this resource');
+      throw new ForbiddenException('У вас немає доступу до цього ресурсу');
     }
 
     const share = await this.prisma.share.findFirst({
@@ -100,7 +100,7 @@ export class AccessService {
     });
 
     if (!share) {
-      throw new ForbiddenException('You do not have access to this resource');
+      throw new ForbiddenException('У вас немає доступу до цього ресурсу');
     }
 
     return { access: 'VIEWER' as const, room, share };

@@ -1,7 +1,7 @@
 "use client";
 
 import type { DeletionPreviewDto } from "@dataroom/shared";
-import { formatBytes } from "@/lib/format";
+import { formatBytes, ukPlural } from "@/lib/format";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,11 +28,11 @@ export function DeletePreviewDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete this folder?</AlertDialogTitle>
+          <AlertDialogTitle>Видалити цю папку?</AlertDialogTitle>
           <AlertDialogDescription>
             {preview
-              ? `This will permanently delete ${preview.folderCount} folder${preview.folderCount === 1 ? "" : "s"} and ${preview.fileCount} file${preview.fileCount === 1 ? "" : "s"} (${formatBytes(preview.totalSize)}). Nested items cannot be recovered.`
-              : "Loading what will be deleted…"}
+              ? `Буде остаточно видалено ${ukPlural(preview.folderCount, "папку", "папки", "папок")} і ${ukPlural(preview.fileCount, "файл", "файли", "файлів")} (${formatBytes(preview.totalSize)}). Вкладені елементи відновити не можна.`
+              : "Завантаження списку того, що буде видалено…"}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {preview?.sampleNames?.length ? (
@@ -43,9 +43,9 @@ export function DeletePreviewDialog({
           </ul>
         ) : null}
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>Скасувати</AlertDialogCancel>
           <AlertDialogAction onClick={onConfirm} className="bg-destructive text-white hover:bg-destructive/90">
-            Delete everything
+            Видалити все
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

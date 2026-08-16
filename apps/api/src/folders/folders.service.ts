@@ -23,7 +23,7 @@ export class FoldersService {
     if (parentId) {
       const parent = await this.access.getFolderOrThrow(parentId);
       if (parent.dataRoomId !== dataRoomId) {
-        throw new NotFoundException('Parent folder not found');
+        throw new NotFoundException('Батьківську папку не знайдено');
       }
     }
 
@@ -51,7 +51,7 @@ export class FoldersService {
       });
       return serializeFolder(folder);
     } catch (error) {
-      rethrowUnique(error, 'A folder with this name already exists here');
+      rethrowUnique(error, 'Папка з такою назвою вже існує тут');
     }
   }
 
@@ -81,7 +81,7 @@ export class FoldersService {
       { id: room.id, name: room.name },
       ...ancestorIdsFromPath(folder.path).map((fid) => ({
         id: fid,
-        name: byId.get(fid)?.name ?? 'Folder',
+        name: byId.get(fid)?.name ?? 'Папка',
       })),
     ];
 
@@ -105,7 +105,7 @@ export class FoldersService {
       });
       return serializeFolder(updated);
     } catch (error) {
-      rethrowUnique(error, 'A folder with this name already exists here');
+      rethrowUnique(error, 'Папка з такою назвою вже існує тут');
     }
   }
 

@@ -26,7 +26,7 @@ export default function LoginPage() {
       startNavigation();
       router.replace("/rooms");
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Could not sign in");
+      toast.error(err instanceof ApiError ? err.message : "Не вдалося увійти");
     } finally {
       setBusy(false);
     }
@@ -34,25 +34,25 @@ export default function LoginPage() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <h1 className="text-2xl font-semibold">Sign in</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Use your Data Room account.</p>
+      <h1 className="text-2xl font-semibold">Вхід</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Увійдіть у свій обліковий запис кімнати даних.</p>
       <form onSubmit={onSubmit} className="mt-6 space-y-4">
         <div className="space-y-2">
           <Label htmlFor="email">Email</Label>
           <Input id="email" type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="password">Password</Label>
+          <Label htmlFor="password">Пароль</Label>
           <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} />
         </div>
         <Button type="submit" className="w-full" disabled={busy}>
-          {busy ? "Signing in…" : "Sign in"}
+          {busy ? "Вхід…" : "Увійти"}
         </Button>
       </form>
       <p className="mt-4 text-sm text-muted-foreground">
-        No account?{" "}
+        Немає облікового запису?{" "}
         <Link className="text-foreground underline" href="/register">
-          Create one
+          Створити
         </Link>
       </p>
     </main>

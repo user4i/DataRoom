@@ -33,7 +33,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.logger.error(exception);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Internal server error',
+      message: 'Внутрішня помилка сервера',
       error: 'Internal Server Error',
     });
   }

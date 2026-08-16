@@ -11,7 +11,7 @@ const geist = Geist({
 
 export const metadata: Metadata = {
   title: "GS1 Data Room",
-  description: "Virtual data room for nested folders, PDFs, and sharing",
+  description: "Віртуальна кімната даних для вкладених папок, PDF і спільного доступу",
 };
 
 export default function RootLayout({

@@ -14,7 +14,7 @@ export const CurrentUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext): RequestUser => {
     const request = ctx.switchToHttp().getRequest<{ user?: RequestUser }>();
     if (!request.user) {
-      throw new UnauthorizedException('Authentication required');
+      throw new UnauthorizedException('Потрібна автентифікація');
     }
     return request.user;
   },

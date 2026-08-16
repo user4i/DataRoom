@@ -11,7 +11,7 @@ export default function PublicFolderPage({
 }) {
   const { token, folderId } = use(params);
   return (
-    <ExplorerShell title="Shared link">
+    <ExplorerShell title="Спільне посилання">
       <Explorer publicToken={token} folderId={folderId} />
     </ExplorerShell>
   );

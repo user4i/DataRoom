@@ -16,7 +16,7 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
-      throw new ConflictException('This email is already registered');
+      throw new ConflictException('Цей email уже зареєстровано');
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -36,11 +36,11 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Невірний email або пароль');
     }
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
     if (!ok) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Невірний email або пароль');
     }
     return this.issue(user);
   }
@@ -50,7 +50,7 @@ export class AuthService {
       where: { id: userId },
       select: { id: true, email: true, name: true },
     });
-    if (!user) throw new UnauthorizedException('Authentication required');
+    if (!user) throw new UnauthorizedException('Потрібна автентифікація');
     return serializeUser(user);
   }
 

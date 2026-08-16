@@ -117,7 +117,7 @@ export class StorageService {
   verifyUploadToken(token: string) {
     const payload = this.jwt.verify<{ purpose: string; storageKey: string }>(token);
     if (payload.purpose !== 'upload' || !payload.storageKey) {
-      throw new Error('Invalid upload token');
+      throw new Error('Недійсний токен завантаження');
     }
     return payload.storageKey;
   }
@@ -125,7 +125,7 @@ export class StorageService {
   verifyDownloadToken(token: string) {
     const payload = this.jwt.verify<{ purpose: string; storageKey: string; filename?: string }>(token);
     if (payload.purpose !== 'download' || !payload.storageKey) {
-      throw new Error('Invalid download token');
+      throw new Error('Недійсний токен завантаження файлу');
     }
     return payload;
   }
