@@ -1,0 +1,22 @@
+{
+  "name": "gs1-data-room",
+  "private": true,
+  "engines": {
+    "node": "26.7.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspaces --if-present",
+    "dev:api": "npm run start:dev -w api",
+    "dev:web": "npm run dev -w web",
+    "build": "npm run build --workspaces --if-present",
+    "build:api": "npm run build -w api",
+    "build:web": "npm run build -w web",
+    "db:generate": "npm run prisma:generate -w api",
+    "db:migrate": "npm run prisma:migrate -w api",
+    "db:deploy": "npm run prisma:deploy -w api"
+  }
+}

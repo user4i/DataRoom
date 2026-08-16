@@ -1,0 +1,14 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: dataroom
+      POSTGRES_PASSWORD: dataroom
+      POSTGRES_DB: dataroom
+    ports:
+      - "5433:5432"
+    volumes:
+      - dataroom_pg:/var/lib/postgresql/data
+
+volumes:
+  dataroom_pg:
