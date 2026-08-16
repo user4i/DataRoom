@@ -182,7 +182,7 @@ Node version: `26.7.0` (see `.nvmrc` / `engines`).
 
 Production deploys are triggered by GitHub Actions on push to `main` (Vercel CLI + token). Do **not** connect the Vercel GitHub App.
 
-Create an **empty** Vercel project (no Git integration). The workflow deploys from the **monorepo root** (`npx vercel deploy --prod --yes`) so workspace install can see the lockfile. Set the Vercel project Root Directory to `apps/web`.
+Create an **empty** Vercel project (no Git integration). The workflow deploys from the **monorepo root** (`npx vercel deploy --prod --yes`, no `--cwd`) so workspace install can see the lockfile. Set the Vercel project Root Directory to `apps/web`. Do **not** also pass `--cwd apps/web` — Root Directory and `--cwd` must not both be `apps/web`.
 
 Env on the Vercel project: `NEXT_PUBLIC_API_URL=https://<your-api-host>`
 
@@ -201,7 +201,7 @@ Push and pull requests run **CI** (`.github/workflows/ci.yml`): `npm ci`, then b
 Push to `main` runs **CD** (`.github/workflows/deploy.yml`):
 
 1. Optional Prisma migrate against Neon when `DATABASE_URL` is set (skipped if the secret is missing).
-2. Web → Vercel from the repo root (`npx vercel deploy --prod --yes`, using `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`).
+2. Web → Vercel from the repo root (`npx vercel deploy --prod --yes`, using `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID`; Root Directory `apps/web`, no `--cwd`).
 3. API → Render via a Deploy Hook. `render.yaml` in the repo root is the service blueprint (create the web service once in the Render dashboard).
 
 The first production deploy runs only after the secrets below exist, an empty Vercel project is created (so `VERCEL_ORG_ID` / `VERCEL_PROJECT_ID` are known), and the Render service exists with a Deploy Hook.
