@@ -9,6 +9,7 @@ import { DataRoomsModule } from './data-rooms/data-rooms.module';
 import { FoldersModule } from './folders/folders.module';
 import { FilesModule } from './files/files.module';
 import { SharesModule } from './shares/shares.module';
+import { DevModule } from './dev/dev.module';
 
 @Module({
   imports: [
@@ -24,6 +25,8 @@ import { SharesModule } from './shares/shares.module';
     FoldersModule,
     FilesModule,
     SharesModule,
+    // Dev seed/debug routes — omitted when NODE_ENV is production.
+    ...(process.env.NODE_ENV === 'production' ? [] : [DevModule]),
   ],
   controllers: [HealthController],
 })

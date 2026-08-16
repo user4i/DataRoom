@@ -83,6 +83,21 @@ export class StorageService {
     return `${this.publicApi()}/storage/download?token=${encodeURIComponent(token)}`;
   }
 
+  async put(storageKey: string, body: Buffer, mimeType = 'application/pdf') {
+    if (this.driver() === 's3' && this.s3) {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: this.config.get('S3_BUCKET'),
+          Key: storageKey,
+          Body: body,
+          ContentType: mimeType,
+        }),
+      );
+      return;
+    }
+    await this.saveLocal(storageKey, body);
+  }
+
   async saveLocal(storageKey: string, body: Buffer) {
     const filePath = this.localPath(storageKey);
     await mkdir(dirname(filePath), { recursive: true });
