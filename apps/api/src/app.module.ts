@@ -2,6 +2,10 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HealthController } from './health.controller';
 import { PrismaModule } from './prisma/prisma.module';
+import { AuthModule } from './auth/auth.module';
+import { AccessModule } from './access/access.module';
+import { StorageModule } from './storage/storage.module';
+import { DataRoomsModule } from './data-rooms/data-rooms.module';
 
 @Module({
   imports: [
@@ -10,6 +14,10 @@ import { PrismaModule } from './prisma/prisma.module';
       envFilePath: ['.env', '../../.env'],
     }),
     PrismaModule,
+    AccessModule,
+    StorageModule,
+    AuthModule,
+    DataRoomsModule,
   ],
   controllers: [HealthController],
 })

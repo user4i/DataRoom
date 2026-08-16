@@ -1,0 +1,28 @@
+import {
+  createParamDecorator,
+  ExecutionContext,
+  UnauthorizedException,
+} from '@nestjs/common';
+
+export type RequestUser = {
+  id: string;
+  email: string;
+  name: string;
+};
+
+export const CurrentUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): RequestUser => {
+    const request = ctx.switchToHttp().getRequest<{ user?: RequestUser }>();
+    if (!request.user) {
+      throw new UnauthorizedException('Authentication required');
+    }
+    return request.user;
+  },
+);
+
+export const OptionalUser = createParamDecorator(
+  (data: unknown, ctx: ExecutionContext): RequestUser | null => {
+    const request = ctx.switchToHttp().getRequest<{ user?: RequestUser }>();
+    return request.user ?? null;
+  },
+);
