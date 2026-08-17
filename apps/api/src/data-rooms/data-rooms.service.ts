@@ -6,6 +6,7 @@ import { listFolderPage } from '../common/listing-page';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
 import { AnalysisService } from '../ai/analysis.service';
 import { DevService } from '../dev/dev.service';
+import { LabelsService } from '../labels/labels.service';
 
 @Injectable()
 export class DataRoomsService {
@@ -13,6 +14,7 @@ export class DataRoomsService {
     private prisma: PrismaService,
     private access: AccessService,
     private analysis: AnalysisService,
+    private labels: LabelsService,
     private dev: DevService,
   ) {}
 
@@ -121,7 +123,8 @@ export class DataRoomsService {
       pageSize,
       q,
     });
-    return this.analysis.decorateListing({
+    return this.labels.decorateListing(
+      await this.analysis.decorateListing({
       folder: null,
       dataRoom: serializeRoom(room, access),
       breadcrumbs: [{ id: room.id, name: room.name }],
@@ -133,6 +136,7 @@ export class DataRoomsService {
       page: paged.page,
       pageSize: paged.pageSize,
       total: paged.total,
-    });
+    }),
+    );
   }
 }

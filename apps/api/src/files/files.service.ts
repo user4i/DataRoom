@@ -12,6 +12,7 @@ import { rethrowUnique } from '../common/prisma-errors';
 import { ancestorIdsFromPath, serializeFile } from '../common/serialize';
 import { ConfirmFileDto, MoveFileDto, PresignDto } from './dto/file.dto';
 import { AnalysisService } from '../ai/analysis.service';
+import { LabelsService } from '../labels/labels.service';
 import { t } from '../i18n/t';
 
 const PDF = 'application/pdf';
@@ -23,6 +24,7 @@ export class FilesService {
     private access: AccessService,
     private storage: StorageService,
     private analysis: AnalysisService,
+    private labels: LabelsService,
   ) {}
 
   private assertPdf(mimeType: string, name: string) {
@@ -198,7 +200,10 @@ export class FilesService {
       : null;
     const storedVersions = await this.prisma.fileVersion.count({ where: { fileId: file.id } });
     return {
-      file: serializeFile(file, room.owner, { versionCount: storedVersions > 0 ? storedVersions : 1 }),
+      file: await this.labels.withTags(
+        'FILE',
+        serializeFile(file, room.owner, { versionCount: storedVersions > 0 ? storedVersions : 1 }),
+      ),
       access,
       dataRoomId: room.id,
       dataRoomName: room.name,

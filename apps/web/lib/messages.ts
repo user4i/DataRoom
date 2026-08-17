@@ -274,6 +274,9 @@ export const en = {
     saved: "Settings saved",
     saveFailed: "Could not save settings",
     loadFailed: "Could not load settings",
+    tags: "Tags",
+    tagsHint: "Apply these tags to files and folders you own.",
+    catalogAdd: "New name",
   },
   upload: {
     pdfOnly: "Only PDF files are allowed",
@@ -303,6 +306,10 @@ export const en = {
       FOLDER_SUMMARY: "Folder summary",
       FOLDER_COMPARE: "Folder comparison",
     },
+  },
+  tags: {
+    title: "Tags",
+    none: "No tags",
   },
   comments: {
     title: "Comments",
@@ -629,6 +636,9 @@ export const uk: MessageTree<typeof en> = {
     saved: "Налаштування збережено",
     saveFailed: "Не вдалося зберегти налаштування",
     loadFailed: "Не вдалося завантажити налаштування",
+    tags: "Теги",
+    tagsHint: "Ці теги можна ставити на файли та папки, якими ви володієте.",
+    catalogAdd: "Нова назва",
   },
   upload: {
     pdfOnly: "Дозволені лише файли PDF",
@@ -658,6 +668,10 @@ export const uk: MessageTree<typeof en> = {
       FOLDER_SUMMARY: "Підсумок папки",
       FOLDER_COMPARE: "Порівняння в папці",
     },
+  },
+  tags: {
+    title: "Теги",
+    none: "Без тегів",
   },
   comments: {
     title: "Коментарі",

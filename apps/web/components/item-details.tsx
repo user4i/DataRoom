@@ -9,6 +9,7 @@ import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { CommentsPanel } from "@/components/comments-panel";
+import { ItemTags } from "@/components/item-tags";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -26,12 +27,22 @@ export type ItemDetails = {
   canAnalyze?: boolean;
   autoAnalyze?: boolean;
   publicToken?: string;
+  tags?: { id: string; name: string }[];
   onAnalysisQueued?: () => void;
+  onTagsChange?: (tags: { id: string; name: string }[]) => void;
 };
 
 export function detailsFromFolder(
   folder: FolderDto,
-  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean; autoAnalyze?: boolean; publicToken?: string; onAnalysisQueued?: () => void },
+  extras?: {
+    location?: string;
+    owner?: OwnerDto;
+    canAnalyze?: boolean;
+    autoAnalyze?: boolean;
+    publicToken?: string;
+    onAnalysisQueued?: () => void;
+    onTagsChange?: (tags: { id: string; name: string }[]) => void;
+  },
 ): ItemDetails {
   return {
     kind: "folder",
@@ -47,7 +58,9 @@ export function detailsFromFolder(
     canAnalyze: extras?.canAnalyze,
     autoAnalyze: extras?.autoAnalyze,
     publicToken: extras?.publicToken,
+    tags: folder.tags,
     onAnalysisQueued: extras?.onAnalysisQueued,
+    onTagsChange: extras?.onTagsChange,
   };
 }
 
@@ -61,6 +74,7 @@ export function detailsFromFile(
     autoAnalyze?: boolean;
     publicToken?: string;
     onAnalysisQueued?: () => void;
+    onTagsChange?: (tags: { id: string; name: string }[]) => void;
   },
 ): ItemDetails {
   return {
@@ -78,7 +92,9 @@ export function detailsFromFile(
     canAnalyze: extras?.canAnalyze,
     autoAnalyze: extras?.autoAnalyze,
     publicToken: extras?.publicToken,
+    tags: file.tags,
     onAnalysisQueued: extras?.onAnalysisQueued,
+    onTagsChange: extras?.onTagsChange,
   };
 }
 
@@ -211,6 +227,15 @@ export function ItemDetailsList({
       </dl>
       {details.resourceType && details.resourceId ? (
         <ShareAccessSection resourceType={details.resourceType} resourceId={details.resourceId} />
+      ) : null}
+      {details.resourceType && details.resourceId ? (
+        <ItemTags
+          resourceType={details.resourceType}
+          resourceId={details.resourceId}
+          tags={details.tags ?? []}
+          canEdit={Boolean(details.canAnalyze)}
+          onChange={details.onTagsChange}
+        />
       ) : null}
       {details.resourceType && details.resourceId ? (
         <CommentsPanel

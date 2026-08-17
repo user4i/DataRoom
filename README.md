@@ -349,9 +349,9 @@ Done:
 - Testing (visual) - base
 - Multilanguage
 - Comments
+- Tags
 
 Postponed:
-- Tags
 - Relations
 - Status
 - Testing (functional) - covering

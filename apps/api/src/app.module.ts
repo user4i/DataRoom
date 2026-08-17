@@ -12,6 +12,7 @@ import { SharesModule } from './shares/shares.module';
 import { DevModule } from './dev/dev.module';
 import { AiModule } from './ai/ai.module';
 import { CommentsModule } from './comments/comments.module';
+import { LabelsModule } from './labels/labels.module';
 import { localeMiddleware } from './i18n/locale.middleware';
 
 @Module({
@@ -31,6 +32,7 @@ import { localeMiddleware } from './i18n/locale.middleware';
     DevModule,
     AiModule,
     CommentsModule,
+    LabelsModule,
   ],
   controllers: [HealthController],
 })

@@ -7,11 +7,12 @@ import { useAiSummaryLocale } from "@/lib/ai-summary-locale";
 import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import type { AiProvider, AiSettingsDto } from "@dataroom/shared";
+import type { AiProvider, AiSettingsDto, TagDefDto } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { CatalogEditor } from "@/components/catalog-editor";
 
 export function SettingsDialog() {
   const { t } = useI18n();
@@ -24,6 +25,7 @@ export function SettingsDialog() {
   const [apiKey, setApiKey] = useState("");
   const [hasKey, setHasKey] = useState(false);
   const [last4, setLast4] = useState<string | null>(null);
+  const [tags, setTags] = useState<TagDefDto[]>([]);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -39,6 +41,9 @@ export function SettingsDialog() {
         setApiKey("");
       })
       .catch((err) => toast.error(err instanceof ApiError ? err.message : t("settings.loadFailed")));
+    api<TagDefDto[]>("/me/tags", { progress: false })
+      .then(setTags)
+      .catch(() => undefined);
   }, [open, user, setLocale, t]);
 
   const save = async () => {
@@ -74,11 +79,11 @@ export function SettingsDialog() {
           <Settings className="size-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-md">
+      <DialogContent className="flex max-h-[min(90vh,44rem)] max-w-md flex-col gap-4 overflow-hidden">
         <DialogHeader>
           <DialogTitle>{t("settings.title")}</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+        <div className="min-h-0 space-y-4 overflow-y-auto pr-1">
           <div className="space-y-2">
             <Label>{t("settings.aiLanguage")}</Label>
             <div className="grid grid-cols-2 gap-2">
@@ -149,6 +154,33 @@ export function SettingsDialog() {
                 {hasKey && last4 ? (
                   <p className="text-xs text-muted-foreground">{t("settings.apiKeySaved", { n: last4 })}</p>
                 ) : null}
+              </div>
+              <div className="space-y-2">
+                <Label>{t("settings.tags")}</Label>
+                <p className="text-xs text-muted-foreground">{t("settings.tagsHint")}</p>
+                <CatalogEditor
+                  items={tags}
+                  onCreate={async (name) => {
+                    const created = await api<TagDefDto>("/me/tags", {
+                      method: "POST",
+                      body: JSON.stringify({ name }),
+                    });
+                    setTags((current) => [...current, created]);
+                    return created;
+                  }}
+                  onRename={async (id, name) => {
+                    const updated = await api<TagDefDto>(`/me/tags/${id}`, {
+                      method: "PATCH",
+                      body: JSON.stringify({ name }),
+                    });
+                    setTags((current) => current.map((item) => (item.id === id ? updated : item)));
+                    return updated;
+                  }}
+                  onDelete={async (id) => {
+                    await api(`/me/tags/${id}`, { method: "DELETE" });
+                    setTags((current) => current.filter((item) => item.id !== id));
+                  }}
+                />
               </div>
             </>
           ) : null}

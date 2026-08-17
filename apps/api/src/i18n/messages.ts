@@ -47,6 +47,10 @@ export const apiMessages = {
     commentNotFound: 'Comment not found',
     commentDeleteForbidden: 'You can only delete your own comments',
     commentResourceInvalid: 'Comments are only available on files and folders',
+    tagEmpty: 'Enter a tag name',
+    tagNameTaken: 'A tag with this name already exists',
+    tagNotFound: 'Tag not found',
+    tagResourceInvalid: 'Tags are only available on files and folders',
   },
   uk: {
     emailTaken: 'Цей email уже зареєстровано',
@@ -96,6 +100,10 @@ export const apiMessages = {
     commentNotFound: 'Коментар не знайдено',
     commentDeleteForbidden: 'Можна видаляти лише власні коментарі',
     commentResourceInvalid: 'Коментарі доступні лише для файлів і папок',
+    tagEmpty: 'Вкажіть назву тега',
+    tagNameTaken: 'Тег із такою назвою вже існує',
+    tagNotFound: 'Тег не знайдено',
+    tagResourceInvalid: 'Теги доступні лише для файлів і папок',
   },
 } as const;
 

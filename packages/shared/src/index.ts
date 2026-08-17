@@ -36,6 +36,7 @@ export type FolderDto = {
   updatedAt: string;
   owner?: OwnerDto;
   analysisStatus?: AnalysisPublicStatus;
+  tags?: { id: string; name: string }[];
 };
 
 export type FileDto = {
@@ -50,6 +51,7 @@ export type FileDto = {
   owner?: OwnerDto;
   versionCount?: number;
   analysisStatus?: AnalysisPublicStatus;
+  tags?: { id: string; name: string }[];
 };
 
 export type BreadcrumbItem = {
@@ -129,4 +131,9 @@ export type CommentDto = {
   author: { id: string; name: string; email: string };
   mine: boolean;
   canDelete: boolean;
+};
+
+export type TagDefDto = {
+  id: string;
+  name: string;
 };

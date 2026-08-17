@@ -7,6 +7,7 @@ import { listFolderPage } from '../common/listing-page';
 import { t } from '../i18n/t';
 import { CreateFolderDto, UpdateFolderDto } from './dto/folder.dto';
 import { AnalysisService } from '../ai/analysis.service';
+import { LabelsService } from '../labels/labels.service';
 
 @Injectable()
 export class FoldersService {
@@ -14,6 +15,7 @@ export class FoldersService {
     private prisma: PrismaService,
     private access: AccessService,
     private analysis: AnalysisService,
+    private labels: LabelsService,
   ) {}
 
   async create(userId: string, dataRoomId: string, dto: CreateFolderDto) {
@@ -86,7 +88,8 @@ export class FoldersService {
       })),
     ];
 
-    return this.analysis.decorateListing({
+    return this.labels.decorateListing(
+      await this.analysis.decorateListing({
       folder: serializeFolder(folder, room.owner),
       dataRoom: serializeRoom(room, access),
       breadcrumbs,
@@ -98,7 +101,8 @@ export class FoldersService {
       page: paged.page,
       pageSize: paged.pageSize,
       total: paged.total,
-    });
+    }),
+    );
   }
 
   async update(userId: string, id: string, dto: UpdateFolderDto) {
