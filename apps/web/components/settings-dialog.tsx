@@ -18,7 +18,7 @@ export function SettingsDialog() {
   const { user } = useAuth();
   const { locale, setLocale } = useAiSummaryLocale();
   const [open, setOpen] = useState(false);
-  const [provider, setProvider] = useState<AiProvider>("OPENAI_COMPATIBLE");
+  const [provider, setProvider] = useState<AiProvider>("GEMINI");
   const [baseUrl, setBaseUrl] = useState("");
   const [model, setModel] = useState("");
   const [apiKey, setApiKey] = useState("");
@@ -105,7 +105,11 @@ export function SettingsDialog() {
                   <Button
                     type="button"
                     variant={provider === "OPENAI_COMPATIBLE" ? "default" : "outline"}
-                    onClick={() => setProvider("OPENAI_COMPATIBLE")}
+                    onClick={() => {
+                      setProvider("OPENAI_COMPATIBLE");
+                      setBaseUrl((current) => current || "https://api.groq.com/openai/v1");
+                      setModel((current) => current || "llama-3.3-70b-versatile");
+                    }}
                   >
                     {t("settings.openaiCompat")}
                   </Button>

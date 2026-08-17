@@ -53,7 +53,7 @@ export class LlmService {
         Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
-        model: model || 'gpt-4o-mini',
+        model: model || 'llama-3.3-70b-versatile',
         temperature: 0.2,
         response_format: { type: 'json_object' },
         messages: [

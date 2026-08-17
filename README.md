@@ -234,9 +234,13 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 ### How do you compute size / count of a subtree?
 
+- 
+
 ### How would this work with 100k files in a room?
 
 ### How would you add viewer vs editor roles later?
+
+- Low level folders/files inherits roles on lowest levels, where it is determinated.
 
 ## Where (steps) and how AI was used
 
@@ -341,5 +345,5 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 ~1 hour = Deploy
 ~1.5 hours = Testing, code clearing, my part of README
 ~1 hour = UX Optimizing / Debug options (Layout, loader or peogress bar, file/folder details, test data in development mode)
-~2 hours = Thinking part personal double check and Deliverables, optimization
+~2.5 hours = Thinking part personal double check and Deliverables, optimization
 ~1 hour = AI-analysis (in process)
