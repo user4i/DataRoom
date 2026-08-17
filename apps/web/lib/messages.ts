@@ -132,6 +132,12 @@ export const en = {
     view: "View",
     versionFailed: "Could not open the version",
   },
+  versions: {
+    title: "Versions · {name}",
+    current: "Current",
+    empty: "No previous versions yet. Replace a file on upload or move to keep history.",
+    open: "Versions",
+  },
   deleteFolder: {
     title: "Delete this folder?",
     contains: "This folder contains {count}. Are you sure you want to delete it and all of its contents?",
@@ -467,6 +473,12 @@ export const uk: typeof en = {
     version: "Версія {n}",
     view: "Переглянути",
     versionFailed: "Не вдалося відкрити версію",
+  },
+  versions: {
+    title: "Версії · {name}",
+    current: "Поточна",
+    empty: "Попередніх версій ще немає. Замініть файл під час завантаження або переміщення, щоб зберегти історію.",
+    open: "Версії",
   },
   deleteFolder: {
     title: "Видалити цю папку?",

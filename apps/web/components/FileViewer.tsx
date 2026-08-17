@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
 import type { FileDto } from "@dataroom/shared";
 import { detailsFromFile, ItemDetailsList } from "@/components/item-details";
-import { formatDateTime } from "@/lib/format";
+import { FileVersionsDialog } from "@/components/file-versions-dialog";
 import { useI18n } from "@/lib/i18n";
 
 export function FileViewer({
@@ -22,7 +22,7 @@ export function FileViewer({
   fileId: string;
   publicToken?: string;
 }) {
-  const { t, locale } = useI18n();
+  const { t } = useI18n();
   const [data, setData] = useState<{
     file: FileDto;
     url: string | null;
@@ -30,19 +30,12 @@ export function FileViewer({
     folderName?: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [versions, setVersions] = useState<{ id: string; version: number; size: string; createdAt: string }[]>([]);
+  const [versionsOpen, setVersionsOpen] = useState(false);
 
   useEffect(() => {
     const path = publicToken ? `/public/${publicToken}/files/${fileId}` : `/files/${fileId}`;
     api<{ file: FileDto; url: string | null; dataRoomName?: string; folderName?: string | null }>(path)
-      .then((res) => {
-        setData(res);
-        if (!publicToken) {
-          api<{ id: string; version: number; size: string; createdAt: string }[]>(`/files/${fileId}/versions`)
-            .then(setVersions)
-            .catch(() => undefined);
-        }
-      })
+      .then(setData)
       .catch((err) => {
         const message =
           err instanceof ApiError && (err.status === 404 || err.status === 403)
@@ -80,6 +73,11 @@ export function FileViewer({
             </Button>
             <h1 className="mt-3 text-xl font-semibold">{data?.file.name ?? "PDF"}</h1>
           </div>
+          {data && !publicToken ? (
+            <Button variant="outline" size="sm" onClick={() => setVersionsOpen(true)}>
+              {t("versions.open")}
+            </Button>
+          ) : null}
         </div>
         {error ? <p className="text-sm text-destructive">{error}</p> : null}
         {!data && !error ? <Skeleton className="h-[80vh] w-full" /> : null}
@@ -102,39 +100,15 @@ export function FileViewer({
                   location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
                   canAnalyze: !publicToken,
                 })}
+                onOpenVersions={!publicToken ? () => setVersionsOpen(true) : undefined}
               />
             </aside>
           </div>
         ) : null}
-        {versions.length > 0 ? (
-          <section className="mt-6">
-            <h2 className="text-sm font-medium">{t("viewer.versions")}</h2>
-            <ul className="mt-2 divide-y rounded-lg border bg-card text-sm">
-              {versions.map((v) => (
-                <li key={v.id} className="flex items-center justify-between px-3 py-2">
-                  <span className="text-muted-foreground">
-                    {t("viewer.version", { n: v.version })} · {formatDateTime(v.createdAt, locale)}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={async () => {
-                      try {
-                        const res = await api<{ url: string }>(`/files/${fileId}/versions/${v.id}`);
-                        setData((d) => (d ? { ...d, url: res.url } : d));
-                      } catch (err) {
-                        toast.error(err instanceof Error ? err.message : t("viewer.versionFailed"));
-                      }
-                    }}
-                  >
-                    {t("viewer.view")}
-                  </Button>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ) : null}
       </main>
+      {!publicToken ? (
+        <FileVersionsDialog fileId={fileId} open={versionsOpen} onOpenChange={setVersionsOpen} />
+      ) : null}
     </div>
   );
 }

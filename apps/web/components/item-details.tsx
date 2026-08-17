@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { FileDto, FolderDto, OwnerDto, ResourceType, ShareDto } from "@dataroom/shared";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
@@ -127,7 +128,13 @@ function ShareAccessSection({ resourceType, resourceId }: { resourceType: Resour
   );
 }
 
-export function ItemDetailsList({ details }: { details: ItemDetails }) {
+export function ItemDetailsList({
+  details,
+  onOpenVersions,
+}: {
+  details: ItemDetails;
+  onOpenVersions?: () => void;
+}) {
   const { t, locale } = useI18n();
   const ownerLabel = details.owner
     ? details.owner.email
@@ -146,19 +153,38 @@ export function ItemDetailsList({ details }: { details: ItemDetails }) {
     { label: t("details.type"), value: typeLabel },
     { label: t("details.size"), value: formatBytes(details.size) },
     ...(details.kind === "folder" ? [{ label: t("details.items"), value: String(details.itemCount ?? 0) }] : []),
-    ...(details.kind === "file" && details.versionCount
-      ? [{ label: t("details.versions"), value: String(details.versionCount) }]
-      : []),
     ...(details.location ? [{ label: t("details.location"), value: details.location }] : []),
     { label: t("details.created"), value: formatDateTime(details.createdAt, locale) },
     { label: t("details.updated"), value: formatDateTime(details.updatedAt, locale) },
     ...(ownerLabel ? [{ label: t("details.owner"), value: ownerLabel }] : []),
   ];
 
+  const showVersions = details.kind === "file" && details.versionCount;
+  const canOpenVersions = Boolean(onOpenVersions && (details.versionCount ?? 0) > 1);
+
   return (
     <div>
       <dl className="grid grid-cols-[7rem_minmax(0,1fr)] gap-x-3 gap-y-2 text-sm">
-        {rows.map((row) => (
+        {rows.slice(0, 2).map((row) => (
+          <div key={row.label} className="contents">
+            <dt className="text-muted-foreground">{row.label}</dt>
+            <dd className="min-w-0 break-words">{row.value}</dd>
+          </div>
+        ))}
+        {showVersions ? (
+          <div className="contents">
+            <dt className="text-muted-foreground">{t("details.versions")}</dt>
+            <dd className="flex min-w-0 items-center gap-2">
+              <span className="break-words">{String(details.versionCount)}</span>
+              {canOpenVersions ? (
+                <Button type="button" variant="outline" size="sm" onClick={onOpenVersions}>
+                  {t("versions.open")}
+                </Button>
+              ) : null}
+            </dd>
+          </div>
+        ) : null}
+        {rows.slice(2).map((row) => (
           <div key={row.label} className="contents">
             <dt className="text-muted-foreground">{row.label}</dt>
             <dd className="min-w-0 break-words">{row.value}</dd>
@@ -184,10 +210,12 @@ export function ItemDetailsDialog({
   open,
   onOpenChange,
   details,
+  onOpenVersions,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   details: ItemDetails | null;
+  onOpenVersions?: () => void;
 }) {
   const { t } = useI18n();
   return (
@@ -200,7 +228,7 @@ export function ItemDetailsDialog({
         </DialogHeader>
         {details ? (
           <div className="min-h-0 overflow-y-auto overscroll-contain pr-1">
-            <ItemDetailsList details={details} />
+            <ItemDetailsList details={details} onOpenVersions={onOpenVersions} />
           </div>
         ) : null}
       </DialogContent>

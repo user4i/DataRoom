@@ -543,6 +543,7 @@ export class FilesService {
       version: v.version,
       size: v.size.toString(),
       createdAt: v.createdAt.toISOString(),
+      current: v.storageKey === file.storageKey,
     }));
   }
 

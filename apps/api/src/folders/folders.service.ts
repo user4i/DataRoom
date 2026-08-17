@@ -91,7 +91,9 @@ export class FoldersService {
       dataRoom: serializeRoom(room, access),
       breadcrumbs,
       folders: paged.folders.map((f) => serializeFolder(f, room.owner)),
-      files: paged.files.map((f) => serializeFile(f, room.owner)),
+      files: paged.files.map((f) =>
+        serializeFile(f, room.owner, { versionCount: Math.max(1, f._count.versions) }),
+      ),
       access,
       page: paged.page,
       pageSize: paged.pageSize,

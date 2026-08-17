@@ -24,6 +24,7 @@ import { EmptyState } from "@/components/empty-state";
 import { ListingPager, DEFAULT_PAGE_SIZE, isPageSize, PAGE_SIZE_STORAGE_KEY } from "@/components/listing-pager";
 import { useDensityFlags } from "@/lib/density";
 import { detailsFromFile, detailsFromFolder, ItemDetailsDialog, type ItemDetails } from "@/components/item-details";
+import { FileVersionsDialog } from "@/components/file-versions-dialog";
 import {
   UploadConflictDialog,
   type ConflictDecision,
@@ -64,6 +65,7 @@ export function Explorer({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [details, setDetails] = useState<ItemDetails | null>(null);
+  const [versionsFileId, setVersionsFileId] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
   const [pageSizeReady, setPageSizeReady] = useState(false);
@@ -476,6 +478,7 @@ export function Explorer({
                     onOpen={openFile}
                     canEdit={canEdit}
                     onDetails={(f) => setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }))}
+                    onVersions={!isPublic ? (f) => setVersionsFileId(f.id) : undefined}
                     onRename={(f) => setRenameTarget({ type: "file", id: f.id, name: f.name })}
                     onMove={setMoveFile}
                     onShare={(f) => setShare({ type: "FILE", id: f.id })}
@@ -668,7 +671,26 @@ export function Explorer({
           }
         }}
       />
-      <ItemDetailsDialog open={Boolean(details)} onOpenChange={(v) => !v && setDetails(null)} details={details} />
+      <ItemDetailsDialog
+        open={Boolean(details)}
+        onOpenChange={(v) => !v && setDetails(null)}
+        details={details}
+        onOpenVersions={
+          !isPublic && details?.kind === "file" && details.resourceId
+            ? () => {
+                setVersionsFileId(details.resourceId!);
+                setDetails(null);
+              }
+            : undefined
+        }
+      />
+      <FileVersionsDialog
+        fileId={versionsFileId}
+        open={Boolean(versionsFileId)}
+        onOpenChange={(open) => {
+          if (!open) setVersionsFileId(null);
+        }}
+      />
     </div>
   );
 }

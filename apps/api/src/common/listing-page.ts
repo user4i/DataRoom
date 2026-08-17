@@ -1,6 +1,8 @@
 import { File, Folder } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 
+export type ListedFile = File & { _count: { versions: number } };
+
 export const PAGE_SIZES = [10, 20, 30, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 20;
 
@@ -39,7 +41,7 @@ export async function listFolderPage(
   const skip = (page - 1) * args.pageSize;
 
   let folders: Folder[] = [];
-  let files: File[] = [];
+  let files: ListedFile[] = [];
 
   if (total > 0) {
     if (skip < folderCount) {
@@ -54,6 +56,7 @@ export async function listFolderPage(
         files = await prisma.file.findMany({
           where: fileWhere,
           orderBy: { name: 'asc' },
+          include: { _count: { select: { versions: true } } },
           take: remaining,
         });
       }
@@ -61,6 +64,7 @@ export async function listFolderPage(
       files = await prisma.file.findMany({
         where: fileWhere,
         orderBy: { name: 'asc' },
+        include: { _count: { select: { versions: true } } },
         skip: skip - folderCount,
         take: args.pageSize,
       });
