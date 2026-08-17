@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { AppHeader } from "@/components/app-header";
+import { EmptyState } from "@/components/empty-state";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
@@ -22,7 +23,7 @@ export function FileViewer({
 }) {
   const [data, setData] = useState<{
     file: FileDto;
-    url: string;
+    url: string | null;
     dataRoomName?: string;
     folderName?: string | null;
   } | null>(null);
@@ -31,7 +32,7 @@ export function FileViewer({
 
   useEffect(() => {
     const path = publicToken ? `/public/${publicToken}/files/${fileId}` : `/files/${fileId}`;
-    api<{ file: FileDto; url: string; dataRoomName?: string; folderName?: string | null }>(path)
+    api<{ file: FileDto; url: string | null; dataRoomName?: string; folderName?: string | null }>(path)
       .then((res) => {
         setData(res);
         if (!publicToken) {
@@ -82,7 +83,16 @@ export function FileViewer({
         {!data && !error ? <Skeleton className="h-[80vh] w-full" /> : null}
         {data ? (
           <div className="grid items-start gap-4 lg:grid-cols-[minmax(0,1fr)_18rem]">
-            <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-background" />
+            {data.url ? (
+              <iframe title={data.file.name} src={data.url} className="h-[80vh] w-full rounded-lg border bg-background" />
+            ) : (
+              <div className="flex h-[80vh] w-full items-center">
+                <EmptyState
+                  title="Файл відсутній у сховищі"
+                  description="Запис про файл є, але сам PDF не знайдено. Можливо, завантаження не завершилось або файл видалили зі сховища."
+                />
+              </div>
+            )}
             <aside className="rounded-lg border bg-card p-4">
               <h2 className="mb-3 text-sm font-medium">Деталі</h2>
               <ItemDetailsList

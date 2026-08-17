@@ -4,6 +4,7 @@ import { JwtService } from '@nestjs/jwt';
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from '@aws-sdk/client-s3';
@@ -114,6 +115,24 @@ export class StorageService {
     return existsSync(this.localPath(storageKey));
   }
 
+  async exists(storageKey: string) {
+    if (this.driver() === 's3' && this.s3) {
+      try {
+        await this.s3.send(
+          new HeadObjectCommand({
+            Bucket: this.config.get('S3_BUCKET'),
+            Key: storageKey,
+          }),
+        );
+        return true;
+      } catch (err) {
+        if (isMissingObject(err)) return false;
+        throw err;
+      }
+    }
+    return this.existsLocal(storageKey);
+  }
+
   verifyUploadToken(token: string) {
     const payload = this.jwt.verify<{ purpose: string; storageKey: string }>(token);
     if (payload.purpose !== 'upload' || !payload.storageKey) {
@@ -147,4 +166,14 @@ export class StorageService {
       // blob cleanup is best-effort
     }
   }
+}
+
+function isMissingObject(err: unknown) {
+  const error = err as { name?: string; Code?: string; $metadata?: { httpStatusCode?: number } };
+  return (
+    error.name === 'NotFound' ||
+    error.name === 'NoSuchKey' ||
+    error.Code === 'NoSuchKey' ||
+    error.$metadata?.httpStatusCode === 404
+  );
 }

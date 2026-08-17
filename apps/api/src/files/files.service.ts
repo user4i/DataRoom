@@ -185,7 +185,9 @@ export class FilesService {
       fileId: file.id,
       folderId: file.folderId,
     });
-    const url = await this.storage.signDownload(file.storageKey, file.name);
+    const url = (await this.storage.exists(file.storageKey))
+      ? await this.storage.signDownload(file.storageKey, file.name)
+      : null;
     const folder = file.folderId
       ? await this.prisma.folder.findUnique({ where: { id: file.folderId }, select: { name: true } })
       : null;
@@ -537,6 +539,9 @@ export class FilesService {
     await this.access.assertCanView({ userId, dataRoomId: file.dataRoomId, fileId: file.id });
     const version = await this.prisma.fileVersion.findFirst({ where: { id: versionId, fileId } });
     if (!version) throw new NotFoundException('Версію не знайдено');
+    if (!(await this.storage.exists(version.storageKey))) {
+      throw new NotFoundException('Файл відсутній у сховищі');
+    }
     const url = await this.storage.signDownload(version.storageKey, file.name);
     return { url, version: version.version, size: version.size.toString() };
   }

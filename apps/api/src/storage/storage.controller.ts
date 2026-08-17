@@ -2,6 +2,7 @@ import {
   BadRequestException,
   Controller,
   Get,
+  NotFoundException,
   Put,
   Query,
   Req,
@@ -45,7 +46,7 @@ export class StorageController {
       throw new UnauthorizedException('Токен завантаження файлу недійсний або прострочений');
     }
     const stream = this.storage.openLocal(payload.storageKey);
-    if (!stream) throw new BadRequestException('Файл недоступний');
+    if (!stream) throw new NotFoundException('Файл відсутній у сховищі');
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader(
       'Content-Disposition',
