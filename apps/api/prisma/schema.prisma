@@ -18,6 +18,7 @@ model User {
   shares       Share[]
   comments     Comment[]
   tagDefs      TagDef[]
+  statusDefs   StatusDef[]
   aiSettings   UserAiSettings?
 }
 
@@ -52,6 +53,7 @@ model Folder {
   shares     Share[]
   comments   Comment[]
   resourceTags ResourceTag[]
+  resourceStatus ResourceStatus?
 
   @@index([dataRoomId, parentId])
   @@index([path])
@@ -74,6 +76,7 @@ model File {
   versions   FileVersion[]
   comments   Comment[]
   resourceTags ResourceTag[]
+  resourceStatus ResourceStatus?
 
   @@index([dataRoomId, folderId])
   @@index([folderId, name])
@@ -205,6 +208,34 @@ model ResourceTag {
 
   @@unique([tagId, resourceType, resourceId])
   @@index([resourceType, resourceId])
+}
+
+model StatusDef {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name      String
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  assignments ResourceStatus[]
+
+  @@unique([userId, name])
+  @@index([userId, sortOrder])
+}
+
+model ResourceStatus {
+  id           String       @id @default(uuid())
+  statusId     String
+  status       StatusDef    @relation(fields: [statusId], references: [id], onDelete: Cascade)
+  resourceType ResourceType
+  resourceId   String
+  fileId       String?      @unique
+  file         File?        @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  folderId     String?      @unique
+  folder       Folder?      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@unique([resourceType, resourceId])
+  @@index([statusId])
 }
 
 model Share {

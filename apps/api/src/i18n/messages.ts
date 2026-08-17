@@ -51,6 +51,9 @@ export const apiMessages = {
     tagNameTaken: 'A tag with this name already exists',
     tagNotFound: 'Tag not found',
     tagResourceInvalid: 'Tags are only available on files and folders',
+    statusEmpty: 'Enter a status name',
+    statusNameTaken: 'A status with this name already exists',
+    statusNotFound: 'Status not found',
   },
   uk: {
     emailTaken: 'Цей email уже зареєстровано',
@@ -104,6 +107,9 @@ export const apiMessages = {
     tagNameTaken: 'Тег із такою назвою вже існує',
     tagNotFound: 'Тег не знайдено',
     tagResourceInvalid: 'Теги доступні лише для файлів і папок',
+    statusEmpty: 'Вкажіть назву статусу',
+    statusNameTaken: 'Статус із такою назвою вже існує',
+    statusNotFound: 'Статус не знайдено',
   },
 } as const;
 

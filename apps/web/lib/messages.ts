@@ -276,6 +276,8 @@ export const en = {
     loadFailed: "Could not load settings",
     tags: "Tags",
     tagsHint: "Apply these tags to files and folders you own.",
+    statuses: "Statuses",
+    statusesHint: "Apply one status to files and folders you own. No status means none.",
     catalogAdd: "New name",
   },
   upload: {
@@ -310,6 +312,10 @@ export const en = {
   tags: {
     title: "Tags",
     none: "No tags",
+  },
+  status: {
+    title: "Status",
+    none: "None",
   },
   comments: {
     title: "Comments",
@@ -638,6 +644,8 @@ export const uk: MessageTree<typeof en> = {
     loadFailed: "Не вдалося завантажити налаштування",
     tags: "Теги",
     tagsHint: "Ці теги можна ставити на файли та папки, якими ви володієте.",
+    statuses: "Статуси",
+    statusesHint: "Один статус на файл або папку, якими ви володієте. Без статусу — нейтрально.",
     catalogAdd: "Нова назва",
   },
   upload: {
@@ -672,6 +680,10 @@ export const uk: MessageTree<typeof en> = {
   tags: {
     title: "Теги",
     none: "Без тегів",
+  },
+  status: {
+    title: "Статус",
+    none: "Немає",
   },
   comments: {
     title: "Коментарі",

@@ -294,6 +294,7 @@ export function Explorer({
                     location: listing.breadcrumbs.slice(0, -1).map((item) => item.name).join(" / "),
                     canAnalyze: canEdit,
                     publicToken,
+                    onStatusChange: () => void load({ silent: true }),
                   }),
                 );
               }}
@@ -440,7 +441,7 @@ export function Explorer({
             onOpen={openFolder}
             canEdit={canEdit}
             onDetails={(folder) =>
-              setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit, publicToken, onAnalysisQueued: () => void load({ silent: true }) }))
+              setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit, publicToken, onAnalysisQueued: () => void load({ silent: true }), onStatusChange: () => void load({ silent: true }) }))
             }
             onRename={(folder) => setRenameTarget({ type: "folder", id: folder.id, name: folder.name })}
             onShare={(folder) => setShare({ type: "FOLDER", id: folder.id })}
@@ -453,6 +454,7 @@ export function Explorer({
                   publicToken,
                   autoAnalyze: true,
                   onAnalysisQueued: () => void load({ silent: true }),
+                  onStatusChange: () => void load({ silent: true }),
                 }),
               )
             }
@@ -480,7 +482,7 @@ export function Explorer({
                     onOpen={openFile}
                     canEdit={canEdit}
                     onDetails={(f) =>
-                      setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit, publicToken, onAnalysisQueued: () => void load({ silent: true }) }))
+                      setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit, publicToken, onAnalysisQueued: () => void load({ silent: true }), onStatusChange: () => void load({ silent: true }) }))
                     }
                     onVersions={!isPublic ? (f) => setVersionsFileId(f.id) : undefined}
                     onRename={(f) => setRenameTarget({ type: "file", id: f.id, name: f.name })}
@@ -495,6 +497,7 @@ export function Explorer({
                           publicToken,
                           autoAnalyze: true,
                           onAnalysisQueued: () => void load({ silent: true }),
+                          onStatusChange: () => void load({ silent: true }),
                         }),
                       )
                     }

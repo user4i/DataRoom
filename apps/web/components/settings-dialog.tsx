@@ -7,7 +7,7 @@ import { useAiSummaryLocale } from "@/lib/ai-summary-locale";
 import { useAuth } from "@/lib/auth";
 import { api, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
-import type { AiProvider, AiSettingsDto, TagDefDto } from "@dataroom/shared";
+import type { AiProvider, AiSettingsDto, StatusDefDto, TagDefDto } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ export function SettingsDialog() {
   const [hasKey, setHasKey] = useState(false);
   const [last4, setLast4] = useState<string | null>(null);
   const [tags, setTags] = useState<TagDefDto[]>([]);
+  const [statuses, setStatuses] = useState<StatusDefDto[]>([]);
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -43,6 +44,9 @@ export function SettingsDialog() {
       .catch((err) => toast.error(err instanceof ApiError ? err.message : t("settings.loadFailed")));
     api<TagDefDto[]>("/me/tags", { progress: false })
       .then(setTags)
+      .catch(() => undefined);
+    api<StatusDefDto[]>("/me/statuses", { progress: false })
+      .then(setStatuses)
       .catch(() => undefined);
   }, [open, user, setLocale, t]);
 
@@ -179,6 +183,33 @@ export function SettingsDialog() {
                   onDelete={async (id) => {
                     await api(`/me/tags/${id}`, { method: "DELETE" });
                     setTags((current) => current.filter((item) => item.id !== id));
+                  }}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>{t("settings.statuses")}</Label>
+                <p className="text-xs text-muted-foreground">{t("settings.statusesHint")}</p>
+                <CatalogEditor
+                  items={statuses}
+                  onCreate={async (name) => {
+                    const created = await api<StatusDefDto>("/me/statuses", {
+                      method: "POST",
+                      body: JSON.stringify({ name }),
+                    });
+                    setStatuses((current) => [...current, created]);
+                    return created;
+                  }}
+                  onRename={async (id, name) => {
+                    const updated = await api<StatusDefDto>(`/me/statuses/${id}`, {
+                      method: "PATCH",
+                      body: JSON.stringify({ name }),
+                    });
+                    setStatuses((current) => current.map((item) => (item.id === id ? updated : item)));
+                    return updated;
+                  }}
+                  onDelete={async (id) => {
+                    await api(`/me/statuses/${id}`, { method: "DELETE" });
+                    setStatuses((current) => current.filter((item) => item.id !== id));
                   }}
                 />
               </div>

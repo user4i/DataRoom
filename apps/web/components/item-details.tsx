@@ -10,6 +10,7 @@ import { useI18n } from "@/lib/i18n";
 import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { CommentsPanel } from "@/components/comments-panel";
 import { ItemTags } from "@/components/item-tags";
+import { ItemStatus } from "@/components/item-status";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -28,8 +29,10 @@ export type ItemDetails = {
   autoAnalyze?: boolean;
   publicToken?: string;
   tags?: { id: string; name: string }[];
+  status?: { id: string; name: string } | null;
   onAnalysisQueued?: () => void;
   onTagsChange?: (tags: { id: string; name: string }[]) => void;
+  onStatusChange?: (status: { id: string; name: string } | null) => void;
 };
 
 export function detailsFromFolder(
@@ -42,6 +45,7 @@ export function detailsFromFolder(
     publicToken?: string;
     onAnalysisQueued?: () => void;
     onTagsChange?: (tags: { id: string; name: string }[]) => void;
+    onStatusChange?: (status: { id: string; name: string } | null) => void;
   },
 ): ItemDetails {
   return {
@@ -59,8 +63,10 @@ export function detailsFromFolder(
     autoAnalyze: extras?.autoAnalyze,
     publicToken: extras?.publicToken,
     tags: folder.tags,
+    status: folder.status ?? null,
     onAnalysisQueued: extras?.onAnalysisQueued,
     onTagsChange: extras?.onTagsChange,
+    onStatusChange: extras?.onStatusChange,
   };
 }
 
@@ -75,6 +81,7 @@ export function detailsFromFile(
     publicToken?: string;
     onAnalysisQueued?: () => void;
     onTagsChange?: (tags: { id: string; name: string }[]) => void;
+    onStatusChange?: (status: { id: string; name: string } | null) => void;
   },
 ): ItemDetails {
   return {
@@ -93,8 +100,10 @@ export function detailsFromFile(
     autoAnalyze: extras?.autoAnalyze,
     publicToken: extras?.publicToken,
     tags: file.tags,
+    status: file.status ?? null,
     onAnalysisQueued: extras?.onAnalysisQueued,
     onTagsChange: extras?.onTagsChange,
+    onStatusChange: extras?.onStatusChange,
   };
 }
 
@@ -235,6 +244,15 @@ export function ItemDetailsList({
           tags={details.tags ?? []}
           canEdit={Boolean(details.canAnalyze)}
           onChange={details.onTagsChange}
+        />
+      ) : null}
+      {details.resourceType && details.resourceId ? (
+        <ItemStatus
+          resourceType={details.resourceType}
+          resourceId={details.resourceId}
+          status={details.status ?? null}
+          canEdit={Boolean(details.canAnalyze)}
+          onChange={details.onStatusChange}
         />
       ) : null}
       {details.resourceType && details.resourceId ? (

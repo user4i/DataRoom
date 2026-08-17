@@ -15,6 +15,7 @@ import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { AnalysisStatusBadge } from "@/components/analysis-status-badge";
 import { TagPills } from "@/components/item-tags";
+import { StatusPill } from "@/components/item-status";
 
 export function FolderList({
   folders,
@@ -61,6 +62,7 @@ export function FolderList({
                 )}
               </div>
               <AnalysisStatusBadge status={folder.analysisStatus} />
+              <StatusPill status={folder.status} />
               <TagPills tags={folder.tags} />
             </button>
             <DropdownMenu>

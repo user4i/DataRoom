@@ -350,10 +350,10 @@ Done:
 - Multilanguage
 - Comments
 - Tags
+- Status
 
 Postponed:
 - Relations
-- Status
 - Testing (functional) - covering
 - Testing (unit) - covering
 - Testing (visual) - covering
