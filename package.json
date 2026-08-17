@@ -18,6 +18,8 @@
     "dev:up": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/dev-up.ps1",
     "db:generate": "npm run prisma:generate -w api",
     "db:migrate": "npm run prisma:migrate -w api",
-    "db:deploy": "npm run prisma:deploy -w api"
+    "db:deploy": "npm run prisma:deploy -w api",
+    "test": "npm run test --workspaces --if-present",
+    "test:functional": "npm run test:functional --workspaces --if-present"
   }
 }
