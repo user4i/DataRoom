@@ -438,22 +438,22 @@ export function Explorer({
             folders={listing.folders}
             onOpen={openFolder}
             canEdit={canEdit}
-            onDetails={(folder) => setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }))}
+            onDetails={(folder) =>
+              setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit, onAnalysisQueued: () => void load({ silent: true }) }))
+            }
             onRename={(folder) => setRenameTarget({ type: "folder", id: folder.id, name: folder.name })}
             onShare={(folder) => setShare({ type: "FOLDER", id: folder.id })}
-            onAnalyze={async (folder) => {
-              try {
-                await api("/ai/analyze", {
-                  method: "POST",
-                  body: JSON.stringify({ resourceType: "FOLDER", resourceId: folder.id, kind: "FOLDER_SUMMARY" }),
-                });
-                toast.success(t("ai.queued"));
-                await load();
-                setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }));
-              } catch (err) {
-                toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
-              }
-            }}
+            onAnalyze={(folder) =>
+              setDetails(
+                detailsFromFolder(folder, {
+                  owner,
+                  location,
+                  canAnalyze: canEdit,
+                  autoAnalyze: true,
+                  onAnalysisQueued: () => void load({ silent: true }),
+                }),
+              )
+            }
             onDelete={async (folder) => {
               try {
                 const preview = await api<DeletionPreviewDto>(`/folders/${folder.id}/deletion-preview`);
@@ -477,24 +477,24 @@ export function Explorer({
                     file={file}
                     onOpen={openFile}
                     canEdit={canEdit}
-                    onDetails={(f) => setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }))}
+                    onDetails={(f) =>
+                      setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit, onAnalysisQueued: () => void load({ silent: true }) }))
+                    }
                     onVersions={!isPublic ? (f) => setVersionsFileId(f.id) : undefined}
                     onRename={(f) => setRenameTarget({ type: "file", id: f.id, name: f.name })}
                     onMove={setMoveFile}
                     onShare={(f) => setShare({ type: "FILE", id: f.id })}
-                    onAnalyze={async (f) => {
-                      try {
-                        await api("/ai/analyze", {
-                          method: "POST",
-                          body: JSON.stringify({ resourceType: "FILE", resourceId: f.id, kind: "FILE_SUMMARY" }),
-                        });
-                        toast.success(t("ai.queued"));
-                        await load();
-                        setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }));
-                      } catch (err) {
-                        toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
-                      }
-                    }}
+                    onAnalyze={(f) =>
+                      setDetails(
+                        detailsFromFile(f, {
+                          owner,
+                          location,
+                          canAnalyze: canEdit,
+                          autoAnalyze: true,
+                          onAnalysisQueued: () => void load({ silent: true }),
+                        }),
+                      )
+                    }
                     onDelete={async (f) => {
                       if (!confirm(t("explorer.deleteFileConfirm", { name: f.name }))) return;
                       try {

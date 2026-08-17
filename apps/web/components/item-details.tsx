@@ -23,11 +23,13 @@ export type ItemDetails = {
   resourceType?: ResourceType;
   resourceId?: string;
   canAnalyze?: boolean;
+  autoAnalyze?: boolean;
+  onAnalysisQueued?: () => void;
 };
 
 export function detailsFromFolder(
   folder: FolderDto,
-  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean },
+  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean; autoAnalyze?: boolean; onAnalysisQueued?: () => void },
 ): ItemDetails {
   return {
     kind: "folder",
@@ -41,12 +43,21 @@ export function detailsFromFolder(
     resourceType: "FOLDER",
     resourceId: folder.id,
     canAnalyze: extras?.canAnalyze,
+    autoAnalyze: extras?.autoAnalyze,
+    onAnalysisQueued: extras?.onAnalysisQueued,
   };
 }
 
 export function detailsFromFile(
   file: FileDto,
-  extras?: { location?: string; owner?: OwnerDto; versionCount?: number; canAnalyze?: boolean },
+  extras?: {
+    location?: string;
+    owner?: OwnerDto;
+    versionCount?: number;
+    canAnalyze?: boolean;
+    autoAnalyze?: boolean;
+    onAnalysisQueued?: () => void;
+  },
 ): ItemDetails {
   return {
     kind: "file",
@@ -61,6 +72,8 @@ export function detailsFromFile(
     resourceType: "FILE",
     resourceId: file.id,
     canAnalyze: extras?.canAnalyze,
+    autoAnalyze: extras?.autoAnalyze,
+    onAnalysisQueued: extras?.onAnalysisQueued,
   };
 }
 
@@ -200,6 +213,8 @@ export function ItemDetailsList({
           resourceId={details.resourceId}
           canEdit={Boolean(details.canAnalyze)}
           kinds={details.kind === "folder" ? ["FOLDER_SUMMARY"] : ["FILE_SUMMARY"]}
+          autoRunIfEmpty={details.autoAnalyze}
+          onQueued={details.onAnalysisQueued}
         />
       ) : null}
     </div>
