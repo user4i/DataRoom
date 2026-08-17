@@ -21,6 +21,8 @@
     "db:deploy": "npm run prisma:deploy -w api",
     "test": "npm run test --workspaces --if-present",
     "test:unit": "npm run test:unit --workspaces --if-present",
-    "test:functional": "npm run test:functional --workspaces --if-present"
+    "test:functional": "npm run test:functional --workspaces --if-present",
+    "test:visual": "npm run test:visual -w web",
+    "test:visual:update": "npm run test:visual:update -w web"
   }
 }

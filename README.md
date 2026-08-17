@@ -48,6 +48,13 @@ npm run dev:web
 
 Open [http://localhost:3000](http://localhost:3000) — API health: [http://localhost:3001/health](http://localhost:3001/health)
 
+## Testing
+
+- **Unit / functional (API):** `npm test`. Runs in CI.
+- **Visual (base, local):** `npm run test:visual`. Playwright + Chromium screenshots of guest pages (home / login / register) in light, dark, medium, and Ukrainian. This is the intended source of truth — pixel baselines are OS-specific, so they are **not** run in GitHub Actions.
+  - First time: `npx playwright install chromium` (from `apps/web`).
+  - After a deliberate UI change: `npm run test:visual:update`, then review the PNG diffs. The command builds the production Next.js bundle first so screenshots match what users see (no Next.js dev overlay).
+
 ## Environment variables
 
 
@@ -85,6 +92,9 @@ Never commit `.env` or `.env.local`.
 | `npm run db:generate` | `prisma generate`                         |
 | `npm run db:migrate`  | `prisma migrate dev`                      |
 | `npm run db:deploy`   | `prisma migrate deploy`                   |
+| `npm run test`        | API unit + functional tests               |
+| `npm run test:visual` | Local Playwright screenshots (guest pages) |
+| `npm run test:visual:update` | Rewrite visual baselines after a UI change |
 
 
 ## Repository structure
@@ -336,6 +346,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 Done:
 - Testing (functional) - base
 - Testing (unit) - base
+- Testing (visual) - base
 - Multilanguage
 
 Postponed:
