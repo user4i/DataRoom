@@ -296,6 +296,8 @@ export const en = {
     inProcess: "In process",
     done: "Done",
     failedStatus: "Failed",
+    invalidKey: "The AI API key is not valid. Check it in Settings.",
+    missingKey: "Add an AI API key in Settings.",
     kind: {
       FILE_SUMMARY: "Document summary",
       FOLDER_SUMMARY: "Folder summary",
@@ -638,6 +640,8 @@ export const uk: MessageTree<typeof en> = {
     inProcess: "У процесі",
     done: "Готово",
     failedStatus: "Помилка",
+    invalidKey: "API-ключ AI недійсний. Перевірте його в Налаштуваннях.",
+    missingKey: "Додайте API-ключ AI у Налаштуваннях.",
     kind: {
       FILE_SUMMARY: "Підсумок документа",
       FOLDER_SUMMARY: "Підсумок папки",

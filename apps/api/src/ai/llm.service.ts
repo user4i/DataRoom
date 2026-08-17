@@ -1,6 +1,9 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AiProvider } from '@prisma/client';
 import { t } from '../i18n/t';
+import { INVALID_AI_KEY_ERROR, isInvalidApiKeyMessage } from './errors';
+
+const GEMINI_MODEL = 'gemini-3.6-flash';
 
 @Injectable()
 export class LlmService {
@@ -21,7 +24,7 @@ export class LlmService {
   }
 
   private async gemini(apiKey: string, model: string | null | undefined, prompt: string) {
-    const name = (model || 'gemini-2.0-flash').replace(/^models\//, '');
+    const name = resolveGeminiModel(model);
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(name)}:generateContent?key=${encodeURIComponent(apiKey)}`;
     const res = await fetch(url, {
       method: 'POST',
@@ -36,7 +39,9 @@ export class LlmService {
       candidates?: { content?: { parts?: { text?: string }[] } }[];
     };
     if (!res.ok) {
-      throw new Error(body.error?.message || `Gemini HTTP ${res.status}`);
+      const message = body.error?.message || `Gemini HTTP ${res.status}`;
+      if (isInvalidApiKeyMessage(res.status, message)) throw new Error(INVALID_AI_KEY_ERROR);
+      throw new Error(message);
     }
     const text = body.candidates?.[0]?.content?.parts?.map((p) => p.text || '').join('') || '';
     if (!text) throw new Error('Empty Gemini response');
@@ -70,10 +75,17 @@ export class LlmService {
       choices?: { message?: { content?: string } }[];
     };
     if (!res.ok) {
-      throw new Error(body.error?.message || `LLM HTTP ${res.status}`);
+      const message = body.error?.message || `LLM HTTP ${res.status}`;
+      if (isInvalidApiKeyMessage(res.status, message)) throw new Error(INVALID_AI_KEY_ERROR);
+      throw new Error(message);
     }
     const text = body.choices?.[0]?.message?.content || '';
     if (!text) throw new Error('Empty LLM response');
     return text;
   }
+}
+
+function resolveGeminiModel(model: string | null | undefined) {
+  const name = (model || GEMINI_MODEL).replace(/^models\//, '');
+  return name === 'gemini-2.0-flash' ? GEMINI_MODEL : name;
 }

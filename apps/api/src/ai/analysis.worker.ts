@@ -7,6 +7,7 @@ import { LlmService } from './llm.service';
 import { payloadToHtml } from './html';
 import { parseAiPayload } from './payload';
 import { extractPdfText, hashBuffer } from './pdf-text';
+import { MISSING_AI_KEY_ERROR } from './errors';
 import { fileSummaryPrompt, folderComparePrompt, folderSummaryPrompt } from './prompt';
 
 const TICK_MS = 2000;
@@ -62,14 +63,16 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
 
   private async nextRunnableJob() {
     const candidates = await this.prisma.analysis.findMany({
-      where: {
-        OR: [{ status: 'QUEUED' }, { status: 'FAILED', error: { contains: 'API key' } }],
-      },
+      where: { status: 'QUEUED' },
       orderBy: { updatedAt: 'asc' },
       take: 50,
     });
     for (const job of candidates) {
       if (await this.settings.decryptedKey(job.requestedBy)) return job;
+      await this.prisma.analysis.update({
+        where: { id: job.id },
+        data: { status: 'FAILED', error: MISSING_AI_KEY_ERROR },
+      });
     }
     return null;
   }
@@ -91,7 +94,7 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
   ) {
     const settings = await this.settings.get(userId);
     const apiKey = await this.settings.decryptedKey(userId);
-    if (!apiKey) throw new Error('Add an AI API key in Settings');
+    if (!apiKey) throw new Error(MISSING_AI_KEY_ERROR);
     const locale = settings.locale === 'en' ? 'en' : 'uk';
 
     if (kind === 'FILE_SUMMARY' && resourceType === 'FILE') {

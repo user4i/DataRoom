@@ -4,6 +4,7 @@ import { AccessService } from '../access/access.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { t } from '../i18n/t';
 import { AiSettingsService } from './ai-settings.service';
+import { MISSING_AI_KEY_ERROR } from './errors';
 
 @Injectable()
 export class AnalysisService {
@@ -194,14 +195,14 @@ export class AnalysisService {
     });
   }
 
-  async resumeWhenKeyReady(userId: string) {
+  async resumeWhenKeyReady(userId: string, opts?: { allFailed?: boolean }) {
     const settings = await this.settings.get(userId);
     if (!settings.hasKey) return 0;
     const result = await this.prisma.analysis.updateMany({
       where: {
         requestedBy: userId,
         status: 'FAILED',
-        error: { contains: 'API key' },
+        ...(opts?.allFailed ? {} : { error: MISSING_AI_KEY_ERROR }),
       },
       data: { status: 'QUEUED', error: null, locale: settings.locale },
     });

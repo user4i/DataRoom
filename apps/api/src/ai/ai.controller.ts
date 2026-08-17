@@ -23,7 +23,9 @@ export class AiController {
   @Patch('me/ai-settings')
   async patchSettings(@CurrentUser() user: RequestUser, @Body() dto: PatchAiSettingsDto) {
     const settings = await this.settings.upsert(user.id, dto);
-    if (settings.hasKey) await this.analysis.resumeWhenKeyReady(user.id);
+    if (settings.hasKey) {
+      await this.analysis.resumeWhenKeyReady(user.id, { allFailed: Boolean(dto.apiKey?.trim()) });
+    }
     return settings;
   }
 

@@ -32,6 +32,21 @@ export function AiAnalysisPanel({
   const onQueuedRef = useRef(onQueued);
   onQueuedRef.current = onQueued;
 
+  const loadGen = useRef(0);
+  const load = useCallback(async () => {
+    const mine = loadGen.current;
+    try {
+      const data = await api<AnalysisDto[]>(`/ai/${resourceType}/${resourceId}`, { progress: false });
+      if (mine !== loadGen.current) return;
+      setRows(data);
+      setListed(true);
+      setReady(true);
+    } catch {
+      if (mine !== loadGen.current) return;
+      setReady(true);
+    }
+  }, [resourceType, resourceId]);
+
   const run = useCallback(async () => {
     setBusy(true);
     try {
@@ -41,35 +56,27 @@ export function AiAnalysisPanel({
       });
       toast.success(t("ai.queued"));
       onQueuedRef.current?.();
+      await load();
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
     } finally {
       setBusy(false);
     }
-  }, [resourceType, resourceId, kind, t]);
+  }, [resourceType, resourceId, kind, t, load]);
 
   useEffect(() => {
-    let cancelled = false;
+    loadGen.current += 1;
     setReady(false);
     setListed(false);
-    const load = async () => {
-      try {
-        const data = await api<AnalysisDto[]>(`/ai/${resourceType}/${resourceId}`, { progress: false });
-        if (cancelled) return;
-        setRows(data);
-        setListed(true);
-        setReady(true);
-      } catch {
-        if (!cancelled) setReady(true);
-      }
-    };
-    load().catch(() => undefined);
-    const timer = setInterval(() => load().catch(() => undefined), 2500);
-    return () => {
-      cancelled = true;
-      clearInterval(timer);
-    };
-  }, [resourceType, resourceId]);
+    void load();
+  }, [load]);
+
+  const pending = busy || rows.some((row) => row.status === "in_process");
+  useEffect(() => {
+    if (!pending) return;
+    const timer = setInterval(() => void load(), 2500);
+    return () => clearInterval(timer);
+  }, [pending, load]);
 
   useEffect(() => {
     if (!ready || !listed || !autoRunIfEmpty || !canEdit) return;
@@ -103,7 +110,7 @@ export function AiAnalysisPanel({
           <p className="text-xs text-muted-foreground">
             {t(`ai.kind.${row.kind}`)} · {statusLabel(row.status)}
           </p>
-          {row.error ? <p className="text-sm text-destructive">{row.error}</p> : null}
+          {row.error ? <p className="text-sm text-destructive">{formatAnalysisError(row.error, t)}</p> : null}
           {row.html && row.status === "done" ? (
             <div className="ai-html text-sm" dangerouslySetInnerHTML={{ __html: row.html }} />
           ) : null}
@@ -111,4 +118,10 @@ export function AiAnalysisPanel({
       ))}
     </div>
   );
+}
+
+function formatAnalysisError(error: string, t: (path: string) => string) {
+  if (/API key is not valid|API key not valid/i.test(error)) return t("ai.invalidKey");
+  if (/Add an AI API key/i.test(error)) return t("ai.missingKey");
+  return error;
 }

@@ -133,7 +133,7 @@ export function SettingsDialog() {
                   id="ai-model"
                   value={model}
                   onChange={(e) => setModel(e.target.value)}
-                  placeholder={provider === "GEMINI" ? "gemini-2.0-flash" : "llama-3.3-70b-versatile"}
+                  placeholder={provider === "GEMINI" ? "gemini-3.6-flash" : "llama-3.3-70b-versatile"}
                 />
               </div>
               <div className="space-y-2">
