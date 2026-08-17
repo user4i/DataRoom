@@ -310,7 +310,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 - S3
 
 
-### 9. AI-analysis (in process)
+### 9. AI-analysis 
 
 - Language for AI summary in settings
 - Tests about fruits and vegetables order proposals (list price, quantity, sum)
@@ -329,7 +329,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 **AI usage** -- partially.
 *My side -- partially.*
 
-### 10. Extra credit (in process)
+### 10. Extra credit
 
 **AI usage** -- partially.
 *My side -- partially.*
@@ -338,7 +338,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 - Filtering
 - Versioning at uploading or moving (when replacing)
 
-### 11. My extra (in process)
+### 11. My extra 
 
 **AI usage** -- partially.
 *My side -- partially.*
@@ -370,6 +370,7 @@ Postponed:
 ~1.5 hours = Testing, code clearing, My side of README
 ~1 hour = UX Optimizing / Debug options (Layout, loader or peogress bar, file/folder details, test data in development mode)
 ~2.5 hours = Thinking part personal double check and Deliverables, optimization
-~1.5 hours = AI-analysis (in process)
+~1.5 hours = AI-analysis
 ~0.5 hour = How it scales
 ~0.5 hour = Testing
+~1.5 hour = - Testing (visual) - base, - Multilanguage, - Comments, - Tags, - Status, - Relations
