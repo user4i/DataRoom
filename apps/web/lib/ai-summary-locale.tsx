@@ -12,24 +12,24 @@ const AiSummaryLocaleContext = createContext<{
   locale: Locale;
   setLocale: (value: Locale, persist?: boolean) => void;
 }>({
-  locale: "en",
+  locale: "uk",
   setLocale: () => undefined,
 });
 
 export function AiSummaryLocaleProvider({ children }: { children: React.ReactNode }) {
   const { user, ready } = useAuth();
-  const [locale, setLocaleState] = useState<Locale>("en");
+  const [locale, setLocaleState] = useState<Locale>("uk");
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
-    setLocaleState(stored === "uk" ? "uk" : "en");
+    setLocaleState(stored === "en" ? "en" : "uk");
   }, []);
 
   useEffect(() => {
     if (!ready || !user) return;
     api<AiSettingsDto>("/me/ai-settings", { progress: false })
       .then((data) => {
-        const next = data.locale === "uk" ? "uk" : "en";
+        const next = data.locale === "en" ? "en" : "uk";
         setLocaleState(next);
         window.localStorage.setItem(STORAGE_KEY, next);
       })

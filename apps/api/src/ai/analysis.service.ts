@@ -118,8 +118,6 @@ export class AnalysisService {
   }
 
   async notifyFileChanged(userId: string, file: { id: string; folderId: string | null; dataRoomId: string }) {
-    const settings = await this.settings.get(userId);
-    if (!settings.hasKey) return;
     await this.enqueue({
       userId,
       dataRoomId: file.dataRoomId,
@@ -146,8 +144,6 @@ export class AnalysisService {
   }
 
   async notifyFolderChanged(userId: string, folder: { id: string; parentId: string | null; dataRoomId: string }) {
-    const settings = await this.settings.get(userId);
-    if (!settings.hasKey) return;
     await this.enqueue({
       userId,
       dataRoomId: folder.dataRoomId,
@@ -182,8 +178,6 @@ export class AnalysisService {
 
   async notifyFolderContentsChanged(userId: string, folderId: string | null, dataRoomId: string) {
     if (!folderId) return;
-    const settings = await this.settings.get(userId);
-    if (!settings.hasKey) return;
     await this.enqueue({
       userId,
       dataRoomId,
@@ -198,6 +192,20 @@ export class AnalysisService {
       resourceId: folderId,
       kind: 'FOLDER_COMPARE',
     });
+  }
+
+  async resumeWhenKeyReady(userId: string) {
+    const settings = await this.settings.get(userId);
+    if (!settings.hasKey) return 0;
+    const result = await this.prisma.analysis.updateMany({
+      where: {
+        requestedBy: userId,
+        status: 'FAILED',
+        error: { contains: 'API key' },
+      },
+      data: { status: 'QUEUED', error: null, locale: settings.locale },
+    });
+    return result.count;
   }
 
   async statusesFor(resourceType: ResourceType, ids: string[]) {

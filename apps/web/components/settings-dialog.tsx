@@ -30,7 +30,7 @@ export function SettingsDialog() {
     if (!open || !user) return;
     api<AiSettingsDto>("/me/ai-settings", { progress: false })
       .then((data) => {
-        setLocale(data.locale === "uk" ? "uk" : "en", false);
+        setLocale(data.locale === "en" ? "en" : "uk", false);
         setProvider(data.provider);
         setBaseUrl(data.baseUrl ?? "");
         setModel(data.model ?? "");

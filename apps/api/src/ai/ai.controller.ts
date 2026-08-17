@@ -21,8 +21,10 @@ export class AiController {
   }
 
   @Patch('me/ai-settings')
-  patchSettings(@CurrentUser() user: RequestUser, @Body() dto: PatchAiSettingsDto) {
-    return this.settings.upsert(user.id, dto);
+  async patchSettings(@CurrentUser() user: RequestUser, @Body() dto: PatchAiSettingsDto) {
+    const settings = await this.settings.upsert(user.id, dto);
+    if (settings.hasKey) await this.analysis.resumeWhenKeyReady(user.id);
+    return settings;
   }
 
   @Post('ai/analyze')

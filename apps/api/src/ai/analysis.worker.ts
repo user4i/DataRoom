@@ -40,17 +40,14 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
     this.busy = true;
     try {
       await this.requeueStale();
-      const job = await this.prisma.analysis.findFirst({
-        where: { status: 'QUEUED' },
-        orderBy: { updatedAt: 'asc' },
-      });
+      const job = await this.nextRunnableJob();
       if (!job) return;
       await this.prisma.analysis.update({
         where: { id: job.id },
         data: { status: 'RUNNING', error: null },
       });
       try {
-        await this.process(job.id, job.kind, job.resourceType, job.resourceId, job.requestedBy, job.locale);
+        await this.process(job.id, job.kind, job.resourceType, job.resourceId, job.requestedBy);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Analysis failed';
         await this.prisma.analysis.update({
@@ -61,6 +58,20 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
     } finally {
       this.busy = false;
     }
+  }
+
+  private async nextRunnableJob() {
+    const candidates = await this.prisma.analysis.findMany({
+      where: {
+        OR: [{ status: 'QUEUED' }, { status: 'FAILED', error: { contains: 'API key' } }],
+      },
+      orderBy: { updatedAt: 'asc' },
+      take: 50,
+    });
+    for (const job of candidates) {
+      if (await this.settings.decryptedKey(job.requestedBy)) return job;
+    }
+    return null;
   }
 
   private async requeueStale() {
@@ -77,12 +88,11 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
     resourceType: ResourceType,
     resourceId: string,
     userId: string,
-    localeRaw: string,
   ) {
-    const locale = localeRaw === 'uk' ? 'uk' : 'en';
     const settings = await this.settings.get(userId);
     const apiKey = await this.settings.decryptedKey(userId);
     if (!apiKey) throw new Error('Add an AI API key in Settings');
+    const locale = settings.locale === 'en' ? 'en' : 'uk';
 
     if (kind === 'FILE_SUMMARY' && resourceType === 'FILE') {
       const file = await this.prisma.file.findUnique({ where: { id: resourceId } });

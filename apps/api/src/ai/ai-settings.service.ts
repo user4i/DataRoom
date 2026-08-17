@@ -9,7 +9,7 @@ const GROQ_URL = 'https://api.groq.com/openai/v1';
 const GROQ_MODEL = 'llama-3.3-70b-versatile';
 
 const DEFAULTS = {
-  locale: 'en' as const,
+  locale: 'uk' as const,
   provider: 'GEMINI' as AiProvider,
   baseUrl: null as string | null,
   model: null as string | null,
@@ -34,7 +34,7 @@ export class AiSettingsService {
     const envKey = this.envKey(provider);
     const userHasKey = Boolean(row?.apiKeyCipher);
     return {
-      locale: (row?.locale ?? DEFAULTS.locale) === 'uk' ? 'uk' : 'en',
+      locale: row?.locale === 'en' ? 'en' : 'uk',
       provider,
       baseUrl: row?.baseUrl ?? (provider === 'OPENAI_COMPATIBLE' ? GROQ_URL : null),
       model: row?.model ?? (provider === 'OPENAI_COMPATIBLE' ? GROQ_MODEL : null),
@@ -45,7 +45,7 @@ export class AiSettingsService {
 
   async upsert(userId: string, dto: PatchAiSettingsDto) {
     const current = await this.prisma.userAiSettings.findUnique({ where: { userId } });
-    const locale = dto.locale ?? current?.locale ?? 'en';
+    const locale = dto.locale ?? current?.locale ?? DEFAULTS.locale;
     const provider = dto.provider ?? current?.provider ?? DEFAULTS.provider;
     const baseUrl = dto.baseUrl !== undefined ? emptyToNull(dto.baseUrl) : (current?.baseUrl ?? null);
     const model = dto.model !== undefined ? emptyToNull(dto.model) : (current?.model ?? null);
