@@ -1,6 +1,6 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
-import { json, raw, urlencoded } from 'express';
+import { json, raw, urlencoded, type NextFunction, type Request, type Response } from 'express';
 import { AppModule } from './app.module';
 import { HttpExceptionFilter } from './common/http-exception.filter';
 import { localeFromHeader, runWithLocale } from './i18n/locale';
@@ -8,7 +8,7 @@ import { localeFromHeader, runWithLocale } from './i18n/locale';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, { bodyParser: false });
 
-  app.use((req, res, next) => {
+  app.use((req: Request, _res: Response, next: NextFunction) => {
     runWithLocale(localeFromHeader(req.headers['accept-language']), () => next());
   });
   app.use('/storage/upload', raw({ type: '*/*', limit: '50mb' }));

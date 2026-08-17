@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { AccessService } from '../access/access.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -60,9 +60,6 @@ export class DevService {
   ) {}
 
   async seed(userId: string, dataRoomId: string, scale: SeedScale) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new NotFoundException();
-    }
     await this.access.assertCanEdit(userId, dataRoomId);
 
     await this.clearRoom(dataRoomId);

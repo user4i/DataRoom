@@ -20,7 +20,7 @@ function fallback(): DevDelayState {
 }
 
 export function getDevDelay(): DevDelayState {
-  if (typeof window === "undefined" || process.env.NODE_ENV !== "development") {
+  if (typeof window === "undefined") {
     return fallback();
   }
   try {
@@ -37,7 +37,7 @@ export function getDevDelay(): DevDelayState {
 }
 
 export function setDevDelay(patch: Partial<DevDelayState>) {
-  if (typeof window === "undefined" || process.env.NODE_ENV !== "development") return;
+  if (typeof window === "undefined") return;
   const current = getDevDelay();
   const next = {
     ...current,
@@ -56,9 +56,9 @@ export function subscribeDevDelay(listener: Listener) {
   };
 }
 
-/** Waits only in `next dev` when the debug toggle is on. No-op in production builds. */
+/** Waits when the debug toggle is on. */
 export async function applyDevDelay() {
-  if (process.env.NODE_ENV !== "development") return;
+  if (typeof window === "undefined") return;
   const { enabled, seconds } = getDevDelay();
   if (!enabled) return;
   await new Promise((resolve) => setTimeout(resolve, clampSeconds(seconds) * 1000));

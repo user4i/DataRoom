@@ -26,8 +26,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 /**
- * Debug command menu with demo data seeders.
- * Visible only in development (`next dev`). Production builds omit this component.
+ * Debug command menu with demo data seeders and an artificial API delay.
+ * Shown for signed-in users on local and hosted preview (this take-home is not a locked-down production).
  */
 export function DevCommands() {
   const { user } = useAuth();
@@ -39,7 +39,7 @@ export function DevCommands() {
 
   useEffect(() => subscribeDevDelay(setDelay), []);
 
-  if (process.env.NODE_ENV !== "development" || !user) return null;
+  if (!user) return null;
 
   const run = async (scale: "clear" | "minimal" | "medium" | "heavy") => {
     if (!roomId || busy) return;

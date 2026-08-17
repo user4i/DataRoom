@@ -281,9 +281,9 @@ export const en = {
   and: " and ",
   dev: {
     aria: "Developer commands",
-    title: "Developer commands (development only)",
+    title: "Developer commands",
     label: "Developer commands",
-    hint: "Visible only in development. This menu is omitted from production builds.",
+    hint: "Demo data and an artificial delay for inspecting loaders. Signed-in users only.",
     delay: "Artificial delay",
     delayOn: "On · {n} s",
     delayOff: "Off",
@@ -582,9 +582,9 @@ export const uk: typeof en = {
   and: " і ",
   dev: {
     aria: "Команди розробки",
-    title: "Команди розробки (лише development)",
+    title: "Команди розробки",
     label: "Команди розробки",
-    hint: "Видно лише в режимі розробки. У production-збірці цього меню немає.",
+    hint: "Демо-дані та штучна затримка, щоб перевірити індикатори завантаження. Лише для авторизованих користувачів.",
     delay: "Штучна затримка",
     delayOn: "Увімкнено · {n} с",
     delayOff: "Вимкнено",

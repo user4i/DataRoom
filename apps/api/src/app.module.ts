@@ -26,8 +26,7 @@ import { localeMiddleware } from './i18n/locale.middleware';
     FoldersModule,
     FilesModule,
     SharesModule,
-    // Dev seed/debug routes — omitted when NODE_ENV is production.
-    ...(process.env.NODE_ENV === 'production' ? [] : [DevModule]),
+    DevModule,
   ],
   controllers: [HealthController],
 })

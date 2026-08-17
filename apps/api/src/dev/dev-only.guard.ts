@@ -1,12 +1,9 @@
-import { CanActivate, Injectable, NotFoundException } from '@nestjs/common';
+import { CanActivate, Injectable } from '@nestjs/common';
 
-/** Blocks this router outside local `nest start --watch` / NODE_ENV=development. */
+/** Allows seed/debug routes while this take-home is still a hosted preview. */
 @Injectable()
 export class DevOnlyGuard implements CanActivate {
   canActivate(): boolean {
-    if (process.env.NODE_ENV === 'production') {
-      throw new NotFoundException();
-    }
     return true;
   }
 }
