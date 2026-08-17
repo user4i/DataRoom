@@ -22,6 +22,7 @@ export function FolderList({
   onRename,
   onShare,
   onDelete,
+  onAnalyze,
 }: {
   folders: FolderDto[];
   onOpen: (folder: FolderDto) => void;
@@ -30,6 +31,7 @@ export function FolderList({
   onRename: (folder: FolderDto) => void;
   onShare: (folder: FolderDto) => void;
   onDelete: (folder: FolderDto) => void;
+  onAnalyze?: (folder: FolderDto) => void;
 }) {
   const { t, p, locale } = useI18n();
   const { dense, minimal } = useDensityFlags();
@@ -66,6 +68,9 @@ export function FolderList({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => onOpen(folder)}>{t("common.open")}</DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onDetails(folder)}>{t("common.details")}</DropdownMenuItem>
+                {canEdit && onAnalyze ? (
+                  <DropdownMenuItem onClick={() => onAnalyze(folder)}>{t("ai.analyze")}</DropdownMenuItem>
+                ) : null}
                 {canEdit ? (
                   <>
                     <DropdownMenuSeparator />

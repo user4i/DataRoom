@@ -426,6 +426,18 @@ export function Explorer({
             onDetails={(folder) => setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }))}
             onRename={(folder) => setRenameTarget({ type: "folder", id: folder.id, name: folder.name })}
             onShare={(folder) => setShare({ type: "FOLDER", id: folder.id })}
+            onAnalyze={async (folder) => {
+              try {
+                await api("/ai/analyze", {
+                  method: "POST",
+                  body: JSON.stringify({ resourceType: "FOLDER", resourceId: folder.id, kind: "FOLDER_SUMMARY" }),
+                });
+                toast.success(t("ai.queued"));
+                setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }));
+              } catch (err) {
+                toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
+              }
+            }}
             onDelete={async (folder) => {
               try {
                 const preview = await api<DeletionPreviewDto>(`/folders/${folder.id}/deletion-preview`);
