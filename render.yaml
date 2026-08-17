@@ -11,6 +11,18 @@ services:
       - key: NODE_VERSION
         value: 26.7.0
       - key: STORAGE_DRIVER
-        value: local
+        value: s3
       - key: PORT
         value: 3001
+      - key: S3_ENDPOINT
+        sync: false
+      - key: S3_REGION
+        sync: false
+      - key: S3_BUCKET
+        sync: false
+      - key: S3_ACCESS_KEY_ID
+        sync: false
+      - key: S3_SECRET_ACCESS_KEY
+        sync: false
+      - key: S3_FORCE_PATH_STYLE
+        value: "true"
