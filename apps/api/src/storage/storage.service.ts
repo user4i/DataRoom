@@ -10,7 +10,7 @@ import {
 } from '@aws-sdk/client-s3';
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createReadStream, existsSync } from 'fs';
-import { mkdir, unlink, writeFile } from 'fs/promises';
+import { mkdir, readFile, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { t } from '../i18n/t';
 
@@ -116,7 +116,26 @@ export class StorageService {
     return existsSync(this.localPath(storageKey));
   }
 
-  async exists(storageKey: string) {
+  async getBuffer(storageKey: string): Promise<Buffer | null> {
+    if (this.driver() === 's3' && this.s3) {
+      try {
+        const res = await this.s3.send(
+          new GetObjectCommand({
+            Bucket: this.config.get('S3_BUCKET'),
+            Key: storageKey,
+          }),
+        );
+        if (!res.Body) return null;
+        return Buffer.from(await res.Body.transformToByteArray());
+      } catch (err) {
+        if (isMissingObject(err)) return null;
+        throw err;
+      }
+    }
+    const filePath = this.localPath(storageKey);
+    if (!existsSync(filePath)) return null;
+    return readFile(filePath);
+  }
     if (this.driver() === 's3' && this.s3) {
       try {
         await this.s3.send(

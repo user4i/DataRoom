@@ -108,6 +108,19 @@ enum AiProvider {
   OPENAI_COMPATIBLE
 }
 
+enum AnalysisKind {
+  FILE_SUMMARY
+  FOLDER_SUMMARY
+  FOLDER_COMPARE
+}
+
+enum AnalysisStatus {
+  QUEUED
+  RUNNING
+  DONE
+  FAILED
+}
+
 model UserAiSettings {
   userId       String     @id
   user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -118,6 +131,27 @@ model UserAiSettings {
   apiKeyCipher String?
   apiKeyLast4  String?
   updatedAt    DateTime   @updatedAt
+}
+
+model Analysis {
+  id           String         @id @default(uuid())
+  dataRoomId   String
+  resourceType ResourceType
+  resourceId   String
+  kind         AnalysisKind
+  status       AnalysisStatus @default(QUEUED)
+  html         String?        @db.Text
+  payloadJson  Json?
+  error        String?
+  locale       String         @default("en")
+  contentHash  String?
+  requestedBy  String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  @@unique([resourceType, resourceId, kind])
+  @@index([status, updatedAt])
+  @@index([dataRoomId])
 }
 
 model Share {

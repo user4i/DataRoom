@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiProvider } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
-import { encryptSecret, last4 } from './crypto';
+import { encryptSecret, decryptSecret, last4 } from './crypto';
 import { PatchAiSettingsDto } from './dto/ai-settings.dto';
 
 const DEFAULTS = {
@@ -56,6 +56,12 @@ export class AiSettingsService {
       update: { locale, provider, baseUrl, model, apiKeyCipher, apiKeyLast4 },
     });
     return this.get(userId);
+  }
+
+  async decryptedKey(userId: string) {
+    const row = await this.prisma.userAiSettings.findUnique({ where: { userId } });
+    if (!row?.apiKeyCipher) return null;
+    return decryptSecret(row.apiKeyCipher, this.secret());
   }
 }
 
