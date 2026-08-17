@@ -5,6 +5,7 @@ import { serializeFile, serializeFolder, serializeRoom } from '../common/seriali
 import { listFolderPage } from '../common/listing-page';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
 import { AnalysisService } from '../ai/analysis.service';
+import { DevService } from '../dev/dev.service';
 
 @Injectable()
 export class DataRoomsService {
@@ -12,13 +13,18 @@ export class DataRoomsService {
     private prisma: PrismaService,
     private access: AccessService,
     private analysis: AnalysisService,
+    private dev: DevService,
   ) {}
 
   async create(userId: string, dto: CreateRoomDto) {
+    const existingRooms = await this.prisma.dataRoom.count();
     const room = await this.prisma.dataRoom.create({
       data: { name: dto.name.trim(), ownerId: userId },
       include: { owner: { select: { id: true, email: true, name: true } } },
     });
+    if (existingRooms === 0) {
+      await this.dev.populate(room.id, 'heavy');
+    }
     return serializeRoom(room, 'OWNER');
   }
 

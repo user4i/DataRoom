@@ -130,17 +130,17 @@ export function DevCommands() {
         {!roomId ? (
           <p className="px-2 py-1.5 text-xs text-muted-foreground">{t("dev.openRoom")}</p>
         ) : null}
-        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("clear")}>
-          {t("dev.clear")}
-        </DropdownMenuItem>
-        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("minimal")}>
-          {t("dev.minimal")}
+        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("heavy")}>
+          {t("dev.heavy")}
         </DropdownMenuItem>
         <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("medium")}>
           {t("dev.medium")}
         </DropdownMenuItem>
-        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("heavy")}>
-          {t("dev.heavy")}
+        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("minimal")}>
+          {t("dev.minimal")}
+        </DropdownMenuItem>
+        <DropdownMenuItem disabled={!roomId || busy} onClick={() => void run("clear")}>
+          {t("dev.clear")}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -7,5 +7,6 @@ import { DevService } from './dev.service';
 @Module({
   controllers: [DevController],
   providers: [DevService, DevOnlyGuard],
+  exports: [DevService],
 })
 export class DevModule {}

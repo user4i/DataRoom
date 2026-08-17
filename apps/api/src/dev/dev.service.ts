@@ -10,7 +10,39 @@ import { SeedScale } from './dto/seed.dto';
 const PDF = 'application/pdf';
 const PROPOSAL_FIXTURES = join(__dirname, '..', '..', 'fixtures', 'proposals');
 
+const ALL_PROPOSALS = [
+  'Green-Valley-offer-2026-04-12.pdf',
+  'Delta-Fresh-quote-Q-441.pdf',
+  'Noord-Groente-pricelist-W12.pdf',
+  'Iberia-Citrus-weekly-2026-03-09.pdf',
+  'Green-Valley-offer-SCAN-2026-01-20.pdf',
+  'Delta-warehouse-note-SCAN.pdf',
+  'Baltic-Trade-Hub-agent-offer.pdf',
+  'EuroBest-Produce-special.pdf',
+  'AgroLink-resale-SCAN.pdf',
+  'Kent-Orchards-fax-SCAN.pdf',
+  'CashLot-no-VAT-SCAN.pdf',
+  'Horizon-Coop-week16.pdf',
+  'Mediator-markup-SCAN.pdf',
+  'Iberia-copy-stamp-SCAN.pdf',
+  'Twin-count-offer-SCAN.pdf',
+  'AgroSmak-proposal-88-03.pdf',
+  'FG-Sadok-SCAN.pdf',
+  'Logistic-Plus-agent.pdf',
+  'Shid-Produkt-overcharge.pdf',
+  'Broker-Odesa-SCAN.pdf',
+];
+
 type FolderSpec = { name: string; children?: FolderSpec[]; files: string[] };
+
+function copies(count: number): string[] {
+  return Array.from({ length: count }, (_, i) => {
+    const fixture = ALL_PROPOSALS[i % ALL_PROPOSALS.length];
+    const round = Math.floor(i / ALL_PROPOSALS.length);
+    if (round === 0) return fixture;
+    return `${fixture.replace(/\.pdf$/i, '')} (${round + 1}).pdf`;
+  });
+}
 
 const MINIMAL: { rootFiles: string[]; folders: FolderSpec[] } = {
   rootFiles: ['Green-Valley-offer-2026-04-12.pdf', 'AgroSmak-proposal-88-03.pdf'],
@@ -44,6 +76,7 @@ function heavySpec(): { rootFiles: string[]; folders: FolderSpec[] } {
       'AgroSmak-proposal-88-03.pdf',
     ],
     folders: [
+      { name: 'All proposals', files: copies(25) },
       {
         name: 'Direct suppliers',
         files: ['Horizon-Coop-week16.pdf'],
@@ -91,6 +124,10 @@ export class DevService {
       return { scale, folders: 0, files: 0 };
     }
 
+    return this.populate(dataRoomId, scale);
+  }
+
+  async populate(dataRoomId: string, scale: Exclude<SeedScale, 'clear'>) {
     const spec = scale === 'minimal' ? MINIMAL : scale === 'medium' ? MEDIUM : heavySpec();
     let folderCount = 0;
     let fileCount = 0;
@@ -141,11 +178,12 @@ export class DevService {
   }
 
   private async addFile(dataRoomId: string, folderId: string | null, name: string) {
+    const fixture = name.replace(/ \((\d+)\)\.pdf$/i, '.pdf');
     let body: Buffer;
     try {
-      body = await readFile(join(PROPOSAL_FIXTURES, name));
+      body = await readFile(join(PROPOSAL_FIXTURES, fixture));
     } catch {
-      throw new InternalServerErrorException(`Missing proposal fixture: ${name}`);
+      throw new InternalServerErrorException(`Missing proposal fixture: ${fixture}`);
     }
     const storageKey = `rooms/${dataRoomId}/${randomUUID()}.pdf`;
     await this.storage.put(storageKey, body);
