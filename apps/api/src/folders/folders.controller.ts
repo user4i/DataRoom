@@ -4,6 +4,7 @@ import { CreateFolderDto, UpdateFolderDto } from './dto/folder.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, RequestUser } from '../common/current-user.decorator';
 import { StorageService } from '../storage/storage.service';
+import { parseListingPage } from '../common/listing-page';
 
 @Controller()
 @UseGuards(JwtAuthGuard)
@@ -32,8 +33,14 @@ export class FoldersController {
   }
 
   @Get('folders/:id')
-  get(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.folders.get(user.id, id);
+  get(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const parsed = parseListingPage(page, pageSize);
+    return this.folders.get(user.id, id, undefined, parsed.page, parsed.pageSize);
   }
 
   @Patch('folders/:id')

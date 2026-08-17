@@ -1,9 +1,10 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { DataRoomsService } from './data-rooms.service';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, RequestUser } from '../common/current-user.decorator';
 import { StorageService } from '../storage/storage.service';
+import { parseListingPage } from '../common/listing-page';
 
 @Controller('data-rooms')
 @UseGuards(JwtAuthGuard)
@@ -24,8 +25,14 @@ export class DataRoomsController {
   }
 
   @Get(':id')
-  get(@CurrentUser() user: RequestUser, @Param('id') id: string) {
-    return this.rooms.listing(user.id, id);
+  get(
+    @CurrentUser() user: RequestUser,
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const parsed = parseListingPage(page, pageSize);
+    return this.rooms.listing(user.id, id, undefined, parsed.page, parsed.pageSize);
   }
 
   @Get(':id/meta')

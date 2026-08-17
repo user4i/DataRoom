@@ -62,6 +62,9 @@ export type ListingDto = {
   folders: FolderDto[];
   files: FileDto[];
   access: "OWNER" | "VIEWER";
+  page: number;
+  pageSize: number;
+  total: number;
 };
 
 export type ShareDto = {

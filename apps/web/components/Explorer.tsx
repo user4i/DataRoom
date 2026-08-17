@@ -20,6 +20,7 @@ import { ShareDialog } from "@/components/ShareDialog";
 import { MoveFileDialog } from "@/components/MoveFileDialog";
 import { DeletePreviewDialog } from "@/components/DeletePreviewDialog";
 import { EmptyState } from "@/components/empty-state";
+import { ListingPager, DEFAULT_PAGE_SIZE, isPageSize, PAGE_SIZE_STORAGE_KEY } from "@/components/listing-pager";
 import { useDensityFlags } from "@/lib/density";
 import { detailsFromFile, detailsFromFolder, ItemDetailsDialog, type ItemDetails } from "@/components/item-details";
 import {
@@ -60,6 +61,9 @@ export function Explorer({
   const [uploadOpen, setUploadOpen] = useState(false);
   const [uploadBusy, setUploadBusy] = useState(false);
   const [details, setDetails] = useState<ItemDetails | null>(null);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
+  const [pageSizeReady, setPageSizeReady] = useState(false);
 
   const isPublic = Boolean(publicToken);
   const canEdit = listing?.access === "OWNER" && !isPublic;
@@ -69,25 +73,29 @@ export function Explorer({
   const load = useCallback(async () => {
     try {
       setError(null);
+      const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       const path = publicToken
         ? folderId
-          ? `/public/${publicToken}/folders/${folderId}`
-          : `/public/${publicToken}`
+          ? `/public/${publicToken}/folders/${folderId}?${query}`
+          : `/public/${publicToken}?${query}`
         : folderId
-          ? `/folders/${folderId}`
-          : `/data-rooms/${roomId}`;
+          ? `/folders/${folderId}?${query}`
+          : `/data-rooms/${roomId}?${query}`;
       const data = publicToken && !folderId
         ? await api<{ listing?: ListingDto; file?: unknown; share: { resourceType: string } }>(path)
         : await api<ListingDto>(path);
       if (publicToken && !folderId && "listing" in data && data.listing) {
         setListing(data.listing);
+        if (data.listing.page !== page) setPage(data.listing.page);
       } else if (publicToken && !folderId && "file" in data && data.file) {
         const file = (data as { file: { file: FileDto } }).file.file;
         startNavigation();
         router.replace(`/s/${publicToken}/files/${file.id}`);
         return;
       } else {
-        setListing(data as ListingDto);
+        const listingData = data as ListingDto;
+        setListing(listingData);
+        if (listingData.page !== page) setPage(listingData.page);
       }
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
@@ -96,11 +104,22 @@ export function Explorer({
       else if (status === 401) setError("Увійдіть у систему");
       else setError(err instanceof Error ? err.message : "Не вдалося завантажити");
     }
-  }, [roomId, folderId, publicToken, router]);
+  }, [roomId, folderId, publicToken, router, page, pageSize]);
 
   useEffect(() => {
+    const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
+    if (isPageSize(stored)) setPageSize(stored);
+    setPageSizeReady(true);
+  }, []);
+
+  useEffect(() => {
+    setPage(1);
+  }, [roomId, folderId, publicToken]);
+
+  useEffect(() => {
+    if (!pageSizeReady) return;
     void load();
-  }, [load]);
+  }, [load, pageSizeReady]);
 
   useEffect(() => {
     if (!query.trim() || isPublic || !listing) {
@@ -381,7 +400,7 @@ export function Explorer({
         />
       ) : null}
 
-      {listing.folders.length === 0 && listing.files.length === 0 ? (
+      {listing.total === 0 ? (
         <EmptyState
           title={canEdit ? "Ця папка порожня" : "Поки що нічого немає"}
           description={canEdit ? "Створіть папку або перетягніть PDF вище." : "Власник ще не додав сюди файлів."}
@@ -448,6 +467,19 @@ export function Explorer({
           ) : null}
         </div>
       )}
+
+      <ListingPager
+        page={listing.page}
+        pageSize={listing.pageSize}
+        total={listing.total}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => {
+          if (!isPageSize(size)) return;
+          window.localStorage.setItem(PAGE_SIZE_STORAGE_KEY, String(size));
+          setPageSize(size);
+          setPage(1);
+        }}
+      />
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>

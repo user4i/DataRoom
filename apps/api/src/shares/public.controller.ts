@@ -1,18 +1,30 @@
-import { Controller, Get, Param } from '@nestjs/common';
+import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SharesService } from './shares.service';
+import { parseListingPage } from '../common/listing-page';
 
 @Controller('public')
 export class PublicController {
   constructor(private shares: SharesService) {}
 
   @Get(':token')
-  meta(@Param('token') token: string) {
-    return this.shares.publicMeta(token);
+  meta(
+    @Param('token') token: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const parsed = parseListingPage(page, pageSize);
+    return this.shares.publicMeta(token, parsed.page, parsed.pageSize);
   }
 
   @Get(':token/folders/:folderId')
-  folder(@Param('token') token: string, @Param('folderId') folderId: string) {
-    return this.shares.publicFolder(token, folderId);
+  folder(
+    @Param('token') token: string,
+    @Param('folderId') folderId: string,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+  ) {
+    const parsed = parseListingPage(page, pageSize);
+    return this.shares.publicFolder(token, folderId, parsed.page, parsed.pageSize);
   }
 
   @Get(':token/files/:fileId')

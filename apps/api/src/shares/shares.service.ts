@@ -179,18 +179,18 @@ export class SharesService {
     return share;
   }
 
-  async publicMeta(token: string) {
+  async publicMeta(token: string, page = 1, pageSize = 20) {
     const share = await this.byToken(token);
     if (share.resourceType === 'DATA_ROOM') {
       return {
         share: this.serialize(share),
-        listing: await this.rooms.listing(null, share.resourceId, token),
+        listing: await this.rooms.listing(null, share.resourceId, token, page, pageSize),
       };
     }
     if (share.resourceType === 'FOLDER') {
       return {
         share: this.serialize(share),
-        listing: await this.folders.get(null, share.resourceId, token),
+        listing: await this.folders.get(null, share.resourceId, token, page, pageSize),
       };
     }
     return {
@@ -199,9 +199,9 @@ export class SharesService {
     };
   }
 
-  async publicFolder(token: string, folderId: string) {
+  async publicFolder(token: string, folderId: string, page = 1, pageSize = 20) {
     await this.byToken(token);
-    return this.folders.get(null, folderId, token);
+    return this.folders.get(null, folderId, token, page, pageSize);
   }
 
   async publicFile(token: string, fileId: string) {

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { AccessService } from '../access/access.service';
 import { serializeFile, serializeFolder, serializeRoom } from '../common/serialize';
+import { listFolderPage } from '../common/listing-page';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
 
 @Injectable()
@@ -92,27 +93,34 @@ export class DataRoomsService {
     return { deleted: true, storageKeys: files.map((f) => f.storageKey) };
   }
 
-  async listing(userId: string | null, roomId: string, publicToken?: string) {
+  async listing(
+    userId: string | null,
+    roomId: string,
+    publicToken?: string,
+    page = 1,
+    pageSize = 20,
+  ) {
     const { access, room } = await this.access.assertCanView({
       userId,
       publicToken,
       dataRoomId: roomId,
     });
-    const folders = await this.prisma.folder.findMany({
-      where: { dataRoomId: roomId, parentId: null },
-      orderBy: { name: 'asc' },
-    });
-    const files = await this.prisma.file.findMany({
-      where: { dataRoomId: roomId, folderId: null },
-      orderBy: { name: 'asc' },
+    const paged = await listFolderPage(this.prisma, {
+      dataRoomId: roomId,
+      parentId: null,
+      page,
+      pageSize,
     });
     return {
       folder: null,
       dataRoom: serializeRoom(room, access),
       breadcrumbs: [{ id: room.id, name: room.name }],
-      folders: folders.map((f) => serializeFolder(f, room.owner)),
-      files: files.map((f) => serializeFile(f, room.owner)),
+      folders: paged.folders.map((f) => serializeFolder(f, room.owner)),
+      files: paged.files.map((f) => serializeFile(f, room.owner)),
       access,
+      page: paged.page,
+      pageSize: paged.pageSize,
+      total: paged.total,
     };
   }
 }
