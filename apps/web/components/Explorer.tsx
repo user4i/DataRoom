@@ -72,9 +72,10 @@ export function Explorer({
   const location = listing?.breadcrumbs.map((item) => item.name).join(" / ") ?? "";
   const owner = listing?.dataRoom.owner;
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = Boolean(opts?.silent);
     try {
-      setError(null);
+      if (!silent) setError(null);
       const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
       const path = publicToken
         ? folderId
@@ -83,9 +84,10 @@ export function Explorer({
         : folderId
           ? `/folders/${folderId}?${query}`
           : `/data-rooms/${roomId}?${query}`;
+      const request = { progress: !silent };
       const data = publicToken && !folderId
-        ? await api<{ listing?: ListingDto; file?: unknown; share: { resourceType: string } }>(path)
-        : await api<ListingDto>(path);
+        ? await api<{ listing?: ListingDto; file?: unknown; share: { resourceType: string } }>(path, request)
+        : await api<ListingDto>(path, request);
       if (publicToken && !folderId && "listing" in data && data.listing) {
         setListing(data.listing);
         if (data.listing.page !== page) setPage(data.listing.page);
@@ -100,6 +102,7 @@ export function Explorer({
         if (listingData.page !== page) setPage(listingData.page);
       }
     } catch (err) {
+      if (silent) return;
       const status = err instanceof ApiError ? err.status : 0;
       if (status === 404) setError(t("explorer.itemGone"));
       else if (status === 403) setError(t("explorer.noAccess"));
@@ -122,6 +125,14 @@ export function Explorer({
     if (!pageSizeReady) return;
     void load();
   }, [load, pageSizeReady]);
+
+  useEffect(() => {
+    if (!listing) return;
+    const busy = [...listing.folders, ...listing.files].some((item) => item.analysisStatus === "in_process");
+    if (!busy) return;
+    const timer = setInterval(() => void load({ silent: true }), 2500);
+    return () => clearInterval(timer);
+  }, [listing, load]);
 
   useEffect(() => {
     if (!query.trim() || isPublic || !listing) {
@@ -433,6 +444,7 @@ export function Explorer({
                   body: JSON.stringify({ resourceType: "FOLDER", resourceId: folder.id, kind: "FOLDER_SUMMARY" }),
                 });
                 toast.success(t("ai.queued"));
+                await load();
                 setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }));
               } catch (err) {
                 toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
@@ -472,6 +484,7 @@ export function Explorer({
                           body: JSON.stringify({ resourceType: "FILE", resourceId: f.id, kind: "FILE_SUMMARY" }),
                         });
                         toast.success(t("ai.queued"));
+                        await load();
                         setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }));
                       } catch (err) {
                         toast.error(err instanceof ApiError ? err.message : t("ai.failed"));

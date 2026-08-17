@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { useDensityFlags } from "@/lib/density";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
+import { AnalysisStatusBadge } from "@/components/analysis-status-badge";
 
 export function FolderList({
   folders,
@@ -49,7 +50,7 @@ export function FolderList({
           >
             <button type="button" className="flex min-w-0 flex-1 items-center gap-2 text-left" onClick={() => onOpen(folder)}>
               <Folder className={`shrink-0 text-sky-700 dark:text-sky-400 ${minimal ? "size-3.5" : "size-5"}`} />
-              <div className="min-w-0">
+              <div className="min-w-0 flex-1">
                 <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{folder.name}</p>
                 {minimal ? null : (
                 <p className="text-xs text-muted-foreground">
@@ -58,6 +59,7 @@ export function FolderList({
                 </p>
                 )}
               </div>
+              <AnalysisStatusBadge status={folder.analysisStatus} />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

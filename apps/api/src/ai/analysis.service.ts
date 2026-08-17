@@ -89,6 +89,117 @@ export class AnalysisService {
     return rows.map((row) => this.serialize(row));
   }
 
+  async decorateListing<
+    T extends { folders: { id: string }[]; files: { id: string }[]; folder?: { id: string } | null },
+  >(listing: T) {
+    const folderIds = listing.folders.map((f) => f.id);
+    if (listing.folder?.id) folderIds.push(listing.folder.id);
+    const [folderMap, fileMap] = await Promise.all([
+      this.statusesFor('FOLDER', folderIds),
+      this.statusesFor('FILE', listing.files.map((f) => f.id)),
+    ]);
+    return {
+      ...listing,
+      folder: listing.folder
+        ? {
+            ...listing.folder,
+            analysisStatus: (folderMap.get(listing.folder.id) as 'no' | 'in_process' | 'done' | 'failed') ?? 'no',
+          }
+        : listing.folder,
+      folders: listing.folders.map((folder) => ({
+        ...folder,
+        analysisStatus: (folderMap.get(folder.id) as 'no' | 'in_process' | 'done' | 'failed') ?? 'no',
+      })),
+      files: listing.files.map((file) => ({
+        ...file,
+        analysisStatus: (fileMap.get(file.id) as 'no' | 'in_process' | 'done' | 'failed') ?? 'no',
+      })),
+    };
+  }
+
+  async notifyFileChanged(userId: string, file: { id: string; folderId: string | null; dataRoomId: string }) {
+    const settings = await this.settings.get(userId);
+    if (!settings.hasKey) return;
+    await this.enqueue({
+      userId,
+      dataRoomId: file.dataRoomId,
+      resourceType: 'FILE',
+      resourceId: file.id,
+      kind: 'FILE_SUMMARY',
+    });
+    if (file.folderId) {
+      await this.enqueue({
+        userId,
+        dataRoomId: file.dataRoomId,
+        resourceType: 'FOLDER',
+        resourceId: file.folderId,
+        kind: 'FOLDER_SUMMARY',
+      });
+      await this.enqueue({
+        userId,
+        dataRoomId: file.dataRoomId,
+        resourceType: 'FOLDER',
+        resourceId: file.folderId,
+        kind: 'FOLDER_COMPARE',
+      });
+    }
+  }
+
+  async notifyFolderChanged(userId: string, folder: { id: string; parentId: string | null; dataRoomId: string }) {
+    const settings = await this.settings.get(userId);
+    if (!settings.hasKey) return;
+    await this.enqueue({
+      userId,
+      dataRoomId: folder.dataRoomId,
+      resourceType: 'FOLDER',
+      resourceId: folder.id,
+      kind: 'FOLDER_SUMMARY',
+    });
+    await this.enqueue({
+      userId,
+      dataRoomId: folder.dataRoomId,
+      resourceType: 'FOLDER',
+      resourceId: folder.id,
+      kind: 'FOLDER_COMPARE',
+    });
+    if (folder.parentId) {
+      await this.enqueue({
+        userId,
+        dataRoomId: folder.dataRoomId,
+        resourceType: 'FOLDER',
+        resourceId: folder.parentId,
+        kind: 'FOLDER_SUMMARY',
+      });
+      await this.enqueue({
+        userId,
+        dataRoomId: folder.dataRoomId,
+        resourceType: 'FOLDER',
+        resourceId: folder.parentId,
+        kind: 'FOLDER_COMPARE',
+      });
+    }
+  }
+
+  async notifyFolderContentsChanged(userId: string, folderId: string | null, dataRoomId: string) {
+    if (!folderId) return;
+    const settings = await this.settings.get(userId);
+    if (!settings.hasKey) return;
+    await this.enqueue({
+      userId,
+      dataRoomId,
+      resourceType: 'FOLDER',
+      resourceId: folderId,
+      kind: 'FOLDER_SUMMARY',
+    });
+    await this.enqueue({
+      userId,
+      dataRoomId,
+      resourceType: 'FOLDER',
+      resourceId: folderId,
+      kind: 'FOLDER_COMPARE',
+    });
+  }
+
   async statusesFor(resourceType: ResourceType, ids: string[]) {
     if (ids.length === 0) return new Map<string, string>();
     const rows = await this.prisma.analysis.findMany({

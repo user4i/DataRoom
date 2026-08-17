@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { AnalysisStatusBadge } from "@/components/analysis-status-badge";
 
 export function FileRow({
   file,
@@ -53,6 +54,7 @@ export function FileRow({
           )}
         </div>
         {minimal ? <span className="shrink-0 text-[11px] text-muted-foreground">{formatBytes(file.size)}</span> : null}
+        <AnalysisStatusBadge status={file.analysisStatus} />
       </button>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

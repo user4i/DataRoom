@@ -11,6 +11,7 @@ import { StorageService } from '../storage/storage.service';
 import { rethrowUnique } from '../common/prisma-errors';
 import { ancestorIdsFromPath, serializeFile } from '../common/serialize';
 import { ConfirmFileDto, MoveFileDto, PresignDto } from './dto/file.dto';
+import { AnalysisService } from '../ai/analysis.service';
 import { t } from '../i18n/t';
 
 const PDF = 'application/pdf';
@@ -21,6 +22,7 @@ export class FilesService {
     private prisma: PrismaService,
     private access: AccessService,
     private storage: StorageService,
+    private analysis: AnalysisService,
   ) {}
 
   private assertPdf(mimeType: string, name: string) {
@@ -132,14 +134,15 @@ export class FilesService {
         return this.addVersion(userId, existing.id, dto.storageKey, BigInt(dto.size));
       }
       if (dto.conflict === 'keep_both') {
-        return this.createFile(dto.dataRoomId, folderId, await this.uniqueName(dto.dataRoomId, folderId, name), dto);
+        return this.createFile(userId, dto.dataRoomId, folderId, await this.uniqueName(dto.dataRoomId, folderId, name), dto);
       }
       throw new ConflictException(t('fileNameTaken'));
     }
-    return this.createFile(dto.dataRoomId, folderId, name, dto);
+    return this.createFile(userId, dto.dataRoomId, folderId, name, dto);
   }
 
   private async createFile(
+    userId: string,
     dataRoomId: string,
     folderId: string | null,
     name: string,
@@ -171,6 +174,7 @@ export class FilesService {
         }
         return created;
       });
+      await this.queueFile(userId, file);
       return serializeFile(file);
     } catch (error) {
       rethrowUnique(error, t('fileNameTaken'));
@@ -258,6 +262,10 @@ export class FilesService {
             data: { folderId: nextFolderId, ...(dto.name ? { name: dto.name.trim() } : {}) },
           });
         });
+        await this.queueFile(userId, updated);
+        if (file.folderId && file.folderId !== updated.folderId) {
+          await this.analysis.notifyFolderContentsChanged(userId, file.folderId, file.dataRoomId).catch(() => undefined);
+        }
         return serializeFile(updated);
       } catch (error) {
         rethrowUnique(error, t('fileNameTakenDest'));
@@ -370,7 +378,7 @@ export class FilesService {
 
   private async replaceOnMove(
     userId: string,
-    source: { id: string; folderId: string | null; storageKey: string; size: bigint },
+    source: { id: string; folderId: string | null; storageKey: string; size: bigint; dataRoomId: string },
     dest: { id: string },
   ) {
     if (source.id === dest.id) {
@@ -394,6 +402,7 @@ export class FilesService {
       await tx.file.delete({ where: { id: source.id } });
     });
     await Promise.all(versions.map((version) => this.storage.deleteObject(version.storageKey)));
+    await this.analysis.notifyFolderContentsChanged(userId, source.folderId, source.dataRoomId).catch(() => undefined);
     return replaced;
   }
 
@@ -418,6 +427,7 @@ export class FilesService {
     });
     await this.storage.deleteObject(file.storageKey);
     await Promise.all(versions.map((v) => this.storage.deleteObject(v.storageKey)));
+    await this.analysis.notifyFolderContentsChanged(userId, file.folderId, file.dataRoomId).catch(() => undefined);
     return { deleted: true };
   }
 
@@ -459,6 +469,7 @@ export class FilesService {
       }
       return next;
     });
+    await this.queueFile(userId, updated);
     return serializeFile(updated);
   }
 
@@ -545,5 +556,9 @@ export class FilesService {
     }
     const url = await this.storage.signDownload(version.storageKey, file.name);
     return { url, version: version.version, size: version.size.toString() };
+  }
+
+  private async queueFile(userId: string, file: { id: string; folderId: string | null; dataRoomId: string }) {
+    await this.analysis.notifyFileChanged(userId, file).catch(() => undefined);
   }
 }

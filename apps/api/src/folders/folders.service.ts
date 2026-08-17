@@ -6,12 +6,14 @@ import { ancestorIdsFromPath, serializeFile, serializeFolder, serializeRoom } fr
 import { listFolderPage } from '../common/listing-page';
 import { t } from '../i18n/t';
 import { CreateFolderDto, UpdateFolderDto } from './dto/folder.dto';
+import { AnalysisService } from '../ai/analysis.service';
 
 @Injectable()
 export class FoldersService {
   constructor(
     private prisma: PrismaService,
     private access: AccessService,
+    private analysis: AnalysisService,
   ) {}
 
   async create(userId: string, dataRoomId: string, dto: CreateFolderDto) {
@@ -46,6 +48,9 @@ export class FoldersService {
         }
         return updated;
       });
+      if (folder.parentId) {
+        await this.analysis.notifyFolderContentsChanged(userId, folder.parentId, folder.dataRoomId).catch(() => undefined);
+      }
       return serializeFolder(folder);
     } catch (error) {
       rethrowUnique(error, t('folderNameTaken'));
@@ -80,7 +85,7 @@ export class FoldersService {
       })),
     ];
 
-    return {
+    return this.analysis.decorateListing({
       folder: serializeFolder(folder, room.owner),
       dataRoom: serializeRoom(room, access),
       breadcrumbs,
@@ -90,7 +95,7 @@ export class FoldersService {
       page: paged.page,
       pageSize: paged.pageSize,
       total: paged.total,
-    };
+    });
   }
 
   async update(userId: string, id: string, dto: UpdateFolderDto) {
@@ -179,6 +184,10 @@ export class FoldersService {
       }
       await tx.folder.delete({ where: { id } });
     });
+
+    if (folder.parentId) {
+      await this.analysis.notifyFolderContentsChanged(userId, folder.parentId, folder.dataRoomId).catch(() => undefined);
+    }
 
     return { deleted: true, storageKeys: files.map((f) => f.storageKey) };
   }

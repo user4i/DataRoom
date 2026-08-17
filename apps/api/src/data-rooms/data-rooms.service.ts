@@ -4,12 +4,14 @@ import { AccessService } from '../access/access.service';
 import { serializeFile, serializeFolder, serializeRoom } from '../common/serialize';
 import { listFolderPage } from '../common/listing-page';
 import { CreateRoomDto, UpdateRoomDto } from './dto/room.dto';
+import { AnalysisService } from '../ai/analysis.service';
 
 @Injectable()
 export class DataRoomsService {
   constructor(
     private prisma: PrismaService,
     private access: AccessService,
+    private analysis: AnalysisService,
   ) {}
 
   async create(userId: string, dto: CreateRoomDto) {
@@ -111,7 +113,7 @@ export class DataRoomsService {
       page,
       pageSize,
     });
-    return {
+    return this.analysis.decorateListing({
       folder: null,
       dataRoom: serializeRoom(room, access),
       breadcrumbs: [{ id: room.id, name: room.name }],
@@ -121,6 +123,6 @@ export class DataRoomsService {
       page: paged.page,
       pageSize: paged.pageSize,
       total: paged.total,
-    };
+    });
   }
 }
