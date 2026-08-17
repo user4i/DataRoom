@@ -192,6 +192,7 @@ model TagDef {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
+  color     String   @default("#64748b")
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   assignments ResourceTag[]
@@ -220,6 +221,7 @@ model StatusDef {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   name      String
+  color     String   @default("#64748b")
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
   assignments ResourceStatus[]

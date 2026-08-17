@@ -4,24 +4,28 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
+import { DEFAULT_LABEL_COLOR, normalizeHex } from "@/lib/label-color";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-export type CatalogItem = { id: string; name: string };
+export type CatalogItem = { id: string; name: string; color: string };
 
 export function CatalogEditor({
   items,
   onCreate,
   onRename,
+  onColor,
   onDelete,
 }: {
   items: CatalogItem[];
-  onCreate: (name: string) => Promise<CatalogItem>;
+  onCreate: (name: string, color: string) => Promise<CatalogItem>;
   onRename: (id: string, name: string) => Promise<CatalogItem>;
+  onColor: (id: string, color: string) => Promise<CatalogItem>;
   onDelete: (id: string) => Promise<void>;
 }) {
   const { t } = useI18n();
   const [draft, setDraft] = useState("");
+  const [draftColor, setDraftColor] = useState(DEFAULT_LABEL_COLOR);
   const [busy, setBusy] = useState(false);
 
   async function add() {
@@ -29,7 +33,7 @@ export function CatalogEditor({
     if (!name) return;
     setBusy(true);
     try {
-      await onCreate(name);
+      await onCreate(name, normalizeHex(draftColor));
       setDraft("");
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : t("settings.saveFailed"));
@@ -42,10 +46,11 @@ export function CatalogEditor({
     <div className="space-y-2">
       <ul className="space-y-2">
         {items.map((item) => (
-          <CatalogRow key={item.id} item={item} onRename={onRename} onDelete={onDelete} />
+          <CatalogRow key={item.id} item={item} onRename={onRename} onColor={onColor} onDelete={onDelete} />
         ))}
       </ul>
       <div className="flex gap-2">
+        <ColorInput value={draftColor} onChange={setDraftColor} label={t("settings.color")} />
         <Input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -69,10 +74,12 @@ export function CatalogEditor({
 function CatalogRow({
   item,
   onRename,
+  onColor,
   onDelete,
 }: {
   item: CatalogItem;
   onRename: (id: string, name: string) => Promise<CatalogItem>;
+  onColor: (id: string, color: string) => Promise<CatalogItem>;
   onDelete: (id: string) => Promise<void>;
 }) {
   const { t } = useI18n();
@@ -98,6 +105,17 @@ function CatalogRow({
     }
   }
 
+  async function changeColor(color: string) {
+    setBusy(true);
+    try {
+      await onColor(item.id, normalizeHex(color));
+    } catch (err) {
+      toast.error(err instanceof ApiError ? err.message : t("settings.saveFailed"));
+    } finally {
+      setBusy(false);
+    }
+  }
+
   async function remove() {
     setBusy(true);
     try {
@@ -111,6 +129,7 @@ function CatalogRow({
 
   return (
     <div className="flex gap-2">
+      <ColorInput value={item.color} onChange={(color) => void changeColor(color)} label={t("settings.color")} disabled={busy} />
       <Input
         value={name}
         onChange={(e) => setName(e.target.value)}
@@ -133,5 +152,28 @@ function CatalogRow({
         </Button>
       )}
     </div>
+  );
+}
+
+function ColorInput({
+  value,
+  onChange,
+  label,
+  disabled,
+}: {
+  value: string;
+  onChange: (color: string) => void;
+  label: string;
+  disabled?: boolean;
+}) {
+  return (
+    <input
+      type="color"
+      aria-label={label}
+      disabled={disabled}
+      value={normalizeHex(value)}
+      onChange={(event) => onChange(event.target.value)}
+      className="h-9 w-9 shrink-0 cursor-pointer rounded-md border border-input bg-transparent p-0.5 disabled:cursor-not-allowed disabled:opacity-50"
+    />
   );
 }

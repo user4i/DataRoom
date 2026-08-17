@@ -6,6 +6,7 @@ import type { ResourceType, TagDefDto } from "@dataroom/shared";
 import { api, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { labelChipStyle } from "@/lib/label-color";
 
 export function ItemTags({
   resourceType,
@@ -75,8 +76,9 @@ export function ItemTags({
               key={tag.id}
               type="button"
               size="sm"
-              variant={active ? "default" : "outline"}
+              variant="outline"
               className="h-7 px-2 text-xs"
+              style={labelChipStyle(tag.color, active)}
               disabled={!canEdit || busy}
               onClick={() => canEdit && void toggle(tag)}
             >
@@ -96,7 +98,8 @@ export function TagPills({ tags }: { tags?: TagDefDto[] }) {
       {tags.slice(0, 3).map((tag) => (
         <span
           key={tag.id}
-          className="max-w-[4.5rem] truncate rounded-full border px-1.5 py-0 text-[10px] leading-4 text-muted-foreground"
+          className="max-w-[4.5rem] truncate rounded-full border px-1.5 py-0 text-[10px] leading-4"
+          style={labelChipStyle(tag.color)}
           title={tag.name}
         >
           {tag.name}

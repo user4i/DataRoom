@@ -1,17 +1,26 @@
-import { ArrayMaxSize, IsArray, IsIn, IsString, IsUUID, MaxLength, MinLength } from 'class-validator';
+import { ArrayMaxSize, IsArray, IsIn, IsOptional, IsString, IsUUID, Matches, MaxLength, MinLength } from 'class-validator';
 
 export class CreateTagDefDto {
   @IsString()
   @MinLength(1)
   @MaxLength(40)
   name!: string;
+
+  @IsOptional()
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  color?: string;
 }
 
 export class UpdateTagDefDto {
+  @IsOptional()
   @IsString()
   @MinLength(1)
   @MaxLength(40)
-  name!: string;
+  name?: string;
+
+  @IsOptional()
+  @Matches(/^#[0-9A-Fa-f]{6}$/)
+  color?: string;
 }
 
 export class AssignTagsDto {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { FileDto, FolderDto, OwnerDto, RelatedItemDto, ResourceType, ShareDto } from "@dataroom/shared";
+import type { FileDto, FolderDto, OwnerDto, RelatedItemDto, ResourceType, ShareDto, StatusDefDto, TagDefDto } from "@dataroom/shared";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
@@ -29,13 +29,13 @@ export type ItemDetails = {
   canAnalyze?: boolean;
   autoAnalyze?: boolean;
   publicToken?: string;
-  tags?: { id: string; name: string }[];
-  status?: { id: string; name: string } | null;
+  tags?: TagDefDto[];
+  status?: StatusDefDto | null;
   relations?: RelatedItemDto[];
   dataRoomId?: string;
   onAnalysisQueued?: () => void;
-  onTagsChange?: (tags: { id: string; name: string }[]) => void;
-  onStatusChange?: (status: { id: string; name: string } | null) => void;
+  onTagsChange?: (tags: TagDefDto[]) => void;
+  onStatusChange?: (status: StatusDefDto | null) => void;
   onRelationsChange?: (items: RelatedItemDto[]) => void;
   onRelatedNavigate?: () => void;
 };
@@ -49,8 +49,8 @@ export function detailsFromFolder(
     autoAnalyze?: boolean;
     publicToken?: string;
     onAnalysisQueued?: () => void;
-    onTagsChange?: (tags: { id: string; name: string }[]) => void;
-    onStatusChange?: (status: { id: string; name: string } | null) => void;
+    onTagsChange?: (tags: TagDefDto[]) => void;
+    onStatusChange?: (status: StatusDefDto | null) => void;
     onRelationsChange?: (items: RelatedItemDto[]) => void;
     onRelatedNavigate?: () => void;
   },
@@ -91,8 +91,8 @@ export function detailsFromFile(
     autoAnalyze?: boolean;
     publicToken?: string;
     onAnalysisQueued?: () => void;
-    onTagsChange?: (tags: { id: string; name: string }[]) => void;
-    onStatusChange?: (status: { id: string; name: string } | null) => void;
+    onTagsChange?: (tags: TagDefDto[]) => void;
+    onStatusChange?: (status: StatusDefDto | null) => void;
     onRelationsChange?: (items: RelatedItemDto[]) => void;
     onRelatedNavigate?: () => void;
   },

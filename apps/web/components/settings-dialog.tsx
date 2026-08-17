@@ -164,10 +164,10 @@ export function SettingsDialog() {
                 <p className="text-xs text-muted-foreground">{t("settings.tagsHint")}</p>
                 <CatalogEditor
                   items={tags}
-                  onCreate={async (name) => {
+                  onCreate={async (name, color) => {
                     const created = await api<TagDefDto>("/me/tags", {
                       method: "POST",
-                      body: JSON.stringify({ name }),
+                      body: JSON.stringify({ name, color }),
                     });
                     setTags((current) => [...current, created]);
                     return created;
@@ -176,6 +176,14 @@ export function SettingsDialog() {
                     const updated = await api<TagDefDto>(`/me/tags/${id}`, {
                       method: "PATCH",
                       body: JSON.stringify({ name }),
+                    });
+                    setTags((current) => current.map((item) => (item.id === id ? updated : item)));
+                    return updated;
+                  }}
+                  onColor={async (id, color) => {
+                    const updated = await api<TagDefDto>(`/me/tags/${id}`, {
+                      method: "PATCH",
+                      body: JSON.stringify({ color }),
                     });
                     setTags((current) => current.map((item) => (item.id === id ? updated : item)));
                     return updated;
@@ -191,10 +199,10 @@ export function SettingsDialog() {
                 <p className="text-xs text-muted-foreground">{t("settings.statusesHint")}</p>
                 <CatalogEditor
                   items={statuses}
-                  onCreate={async (name) => {
+                  onCreate={async (name, color) => {
                     const created = await api<StatusDefDto>("/me/statuses", {
                       method: "POST",
-                      body: JSON.stringify({ name }),
+                      body: JSON.stringify({ name, color }),
                     });
                     setStatuses((current) => [...current, created]);
                     return created;
@@ -203,6 +211,14 @@ export function SettingsDialog() {
                     const updated = await api<StatusDefDto>(`/me/statuses/${id}`, {
                       method: "PATCH",
                       body: JSON.stringify({ name }),
+                    });
+                    setStatuses((current) => current.map((item) => (item.id === id ? updated : item)));
+                    return updated;
+                  }}
+                  onColor={async (id, color) => {
+                    const updated = await api<StatusDefDto>(`/me/statuses/${id}`, {
+                      method: "PATCH",
+                      body: JSON.stringify({ color }),
                     });
                     setStatuses((current) => current.map((item) => (item.id === id ? updated : item)));
                     return updated;

@@ -43,8 +43,8 @@ export type FolderDto = {
   updatedAt: string;
   owner?: OwnerDto;
   analysisStatus?: AnalysisPublicStatus;
-  tags?: { id: string; name: string }[];
-  status?: { id: string; name: string } | null;
+  tags?: TagDefDto[];
+  status?: StatusDefDto | null;
   relations?: RelatedItemDto[];
 };
 
@@ -60,8 +60,8 @@ export type FileDto = {
   owner?: OwnerDto;
   versionCount?: number;
   analysisStatus?: AnalysisPublicStatus;
-  tags?: { id: string; name: string }[];
-  status?: { id: string; name: string } | null;
+  tags?: TagDefDto[];
+  status?: StatusDefDto | null;
   relations?: RelatedItemDto[];
 };
 
@@ -147,9 +147,11 @@ export type CommentDto = {
 export type TagDefDto = {
   id: string;
   name: string;
+  color: string;
 };
 
 export type StatusDefDto = {
   id: string;
   name: string;
+  color: string;
 };

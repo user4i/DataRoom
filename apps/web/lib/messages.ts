@@ -279,6 +279,7 @@ export const en = {
     statuses: "Statuses",
     statusesHint: "Apply one status to files and folders you own. No status means none.",
     catalogAdd: "New name",
+    color: "Color",
   },
   upload: {
     pdfOnly: "Only PDF files are allowed",
@@ -655,6 +656,7 @@ export const uk: MessageTree<typeof en> = {
     statuses: "Статуси",
     statusesHint: "Один статус на файл або папку, якими ви володієте. Без статусу — нейтрально.",
     catalogAdd: "Нова назва",
+    color: "Колір",
   },
   upload: {
     pdfOnly: "Дозволені лише файли PDF",

@@ -6,6 +6,7 @@ import type { ResourceType, StatusDefDto } from "@dataroom/shared";
 import { api, ApiError } from "@/lib/api";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
+import { labelChipStyle } from "@/lib/label-color";
 
 export function ItemStatus({
   resourceType,
@@ -56,7 +57,16 @@ export function ItemStatus({
     return (
       <div className="mt-4 border-t pt-3">
         <h3 className="mb-2 text-sm font-medium">{t("status.title")}</h3>
-        <p className="text-sm text-muted-foreground">{selected?.name ?? t("status.none")}</p>
+        {selected ? (
+          <span
+            className="inline-flex rounded-full border px-2 py-0.5 text-xs"
+            style={labelChipStyle(selected.color)}
+          >
+            {selected.name}
+          </span>
+        ) : (
+          <p className="text-sm text-muted-foreground">{t("status.none")}</p>
+        )}
       </div>
     );
   }
@@ -80,8 +90,9 @@ export function ItemStatus({
             key={item.id}
             type="button"
             size="sm"
-            variant={selected?.id === item.id ? "default" : "outline"}
+            variant="outline"
             className="h-7 px-2 text-xs"
+            style={labelChipStyle(item.color, selected?.id === item.id)}
             disabled={busy}
             onClick={() => void choose(item)}
           >
@@ -97,7 +108,8 @@ export function StatusPill({ status }: { status?: StatusDefDto | null }) {
   if (!status) return null;
   return (
     <span
-      className="max-w-[6rem] truncate rounded-full bg-secondary px-1.5 py-0 text-[10px] leading-4 text-secondary-foreground"
+      className="max-w-[6rem] truncate rounded-full border px-1.5 py-0 text-[10px] leading-4"
+      style={labelChipStyle(status.color)}
       title={status.name}
     >
       {status.name}

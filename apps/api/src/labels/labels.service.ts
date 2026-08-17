@@ -8,10 +8,19 @@ import { AssignTagsDto, CreateTagDefDto, UpdateTagDefDto } from './dto/tags.dto'
 import { AssignStatusDto, CreateStatusDefDto, UpdateStatusDefDto } from './dto/statuses.dto';
 import { AssignRelationsDto } from './dto/relations.dto';
 
-const DEFAULT_TAGS = ['Type1', 'Type2', 'Type3'];
-const DEFAULT_STATUSES = ['Approved', 'For discussion', 'For deletion'];
+const PALETTE = ['#2563eb', '#d97706', '#16a34a', '#dc2626', '#7c3aed', '#0891b2', '#db2777', '#64748b'];
+const DEFAULT_TAGS = [
+  { name: 'Type1', color: '#2563eb' },
+  { name: 'Type2', color: '#d97706' },
+  { name: 'Type3', color: '#16a34a' },
+];
+const DEFAULT_STATUSES = [
+  { name: 'Approved', color: '#16a34a' },
+  { name: 'For discussion', color: '#d97706' },
+  { name: 'For deletion', color: '#dc2626' },
+];
 
-export type TagDto = { id: string; name: string };
+export type TagDto = { id: string; name: string; color: string };
 export type RelatedDto = {
   resourceType: 'FILE' | 'FOLDER';
   resourceId: string;
@@ -39,10 +48,11 @@ export class LabelsService {
     const name = dto.name.trim();
     if (!name) throw new BadRequestException(t('tagEmpty'));
     const last = await this.prisma.tagDef.aggregate({ where: { userId }, _max: { sortOrder: true } });
+    const sortOrder = (last._max.sortOrder ?? -1) + 1;
     try {
       return serializeTag(
         await this.prisma.tagDef.create({
-          data: { userId, name, sortOrder: (last._max.sortOrder ?? -1) + 1 },
+          data: { userId, name, color: parseColor(dto.color) ?? paletteColor(sortOrder), sortOrder },
         }),
       );
     } catch (error) {
@@ -51,11 +61,20 @@ export class LabelsService {
   }
 
   async updateTag(userId: string, id: string, dto: UpdateTagDefDto) {
-    const name = dto.name.trim();
-    if (!name) throw new BadRequestException(t('tagEmpty'));
     await this.getOwnedTag(userId, id);
+    const data: { name?: string; color?: string } = {};
+    if (dto.name !== undefined) {
+      const name = dto.name.trim();
+      if (!name) throw new BadRequestException(t('tagEmpty'));
+      data.name = name;
+    }
+    if (dto.color !== undefined) data.color = parseColor(dto.color) ?? invalidColor();
+    if (!data.name && !data.color) {
+      const row = await this.getOwnedTag(userId, id);
+      return serializeTag(row);
+    }
     try {
-      return serializeTag(await this.prisma.tagDef.update({ where: { id }, data: { name } }));
+      return serializeTag(await this.prisma.tagDef.update({ where: { id }, data }));
     } catch (error) {
       rethrowUnique(error, t('tagNameTaken'));
     }
@@ -107,10 +126,11 @@ export class LabelsService {
     const name = dto.name.trim();
     if (!name) throw new BadRequestException(t('statusEmpty'));
     const last = await this.prisma.statusDef.aggregate({ where: { userId }, _max: { sortOrder: true } });
+    const sortOrder = (last._max.sortOrder ?? -1) + 1;
     try {
       return serializeTag(
         await this.prisma.statusDef.create({
-          data: { userId, name, sortOrder: (last._max.sortOrder ?? -1) + 1 },
+          data: { userId, name, color: parseColor(dto.color) ?? paletteColor(sortOrder), sortOrder },
         }),
       );
     } catch (error) {
@@ -119,11 +139,20 @@ export class LabelsService {
   }
 
   async updateStatus(userId: string, id: string, dto: UpdateStatusDefDto) {
-    const name = dto.name.trim();
-    if (!name) throw new BadRequestException(t('statusEmpty'));
     await this.getOwnedStatus(userId, id);
+    const data: { name?: string; color?: string } = {};
+    if (dto.name !== undefined) {
+      const name = dto.name.trim();
+      if (!name) throw new BadRequestException(t('statusEmpty'));
+      data.name = name;
+    }
+    if (dto.color !== undefined) data.color = parseColor(dto.color) ?? invalidColor();
+    if (!data.name && !data.color) {
+      const row = await this.getOwnedStatus(userId, id);
+      return serializeTag(row);
+    }
     try {
-      return serializeTag(await this.prisma.statusDef.update({ where: { id }, data: { name } }));
+      return serializeTag(await this.prisma.statusDef.update({ where: { id }, data }));
     } catch (error) {
       rethrowUnique(error, t('statusNameTaken'));
     }
@@ -274,11 +303,11 @@ export class LabelsService {
     if (ids.length === 0) return map;
     const rows = await this.prisma.resourceTag.findMany({
       where: { resourceType, resourceId: { in: ids } },
-      include: { tag: { select: { id: true, name: true, sortOrder: true } } },
+      include: { tag: { select: { id: true, name: true, color: true, sortOrder: true } } },
     });
     rows.sort((a, b) => a.tag.sortOrder - b.tag.sortOrder || a.tag.name.localeCompare(b.tag.name));
     for (const row of rows) {
-      map.get(row.resourceId)?.push({ id: row.tag.id, name: row.tag.name });
+      map.get(row.resourceId)?.push({ id: row.tag.id, name: row.tag.name, color: row.tag.color });
     }
     return map;
   }
@@ -289,10 +318,10 @@ export class LabelsService {
     if (ids.length === 0) return map;
     const rows = await this.prisma.resourceStatus.findMany({
       where: { resourceType, resourceId: { in: ids } },
-      include: { status: { select: { id: true, name: true } } },
+      include: { status: { select: { id: true, name: true, color: true } } },
     });
     for (const row of rows) {
-      map.set(row.resourceId, { id: row.status.id, name: row.status.name });
+      map.set(row.resourceId, { id: row.status.id, name: row.status.name, color: row.status.color });
     }
     return map;
   }
@@ -362,7 +391,7 @@ export class LabelsService {
     const count = await this.prisma.tagDef.count({ where: { userId } });
     if (count > 0) return;
     await this.prisma.tagDef.createMany({
-      data: DEFAULT_TAGS.map((name, sortOrder) => ({ userId, name, sortOrder })),
+      data: DEFAULT_TAGS.map((item, sortOrder) => ({ userId, name: item.name, color: item.color, sortOrder })),
     });
   }
 
@@ -370,7 +399,7 @@ export class LabelsService {
     const count = await this.prisma.statusDef.count({ where: { userId } });
     if (count > 0) return;
     await this.prisma.statusDef.createMany({
-      data: DEFAULT_STATUSES.map((name, sortOrder) => ({ userId, name, sortOrder })),
+      data: DEFAULT_STATUSES.map((item, sortOrder) => ({ userId, name: item.name, color: item.color, sortOrder })),
     });
   }
 
@@ -399,8 +428,23 @@ export class LabelsService {
   }
 }
 
-function serializeTag(row: { id: string; name: string }): TagDto {
-  return { id: row.id, name: row.name };
+function serializeTag(row: { id: string; name: string; color: string }): TagDto {
+  return { id: row.id, name: row.name, color: row.color };
+}
+
+function paletteColor(index: number) {
+  return PALETTE[((index % PALETTE.length) + PALETTE.length) % PALETTE.length];
+}
+
+function parseColor(value?: string) {
+  if (value == null || value === '') return null;
+  const color = value.trim();
+  if (!/^#[0-9A-Fa-f]{6}$/.test(color)) throw new BadRequestException(t('colorInvalid'));
+  return color.toLowerCase();
+}
+
+function invalidColor(): never {
+  throw new BadRequestException(t('colorInvalid'));
 }
 
 type LinkRef = { type: 'FILE' | 'FOLDER'; id: string };
