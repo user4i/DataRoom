@@ -176,8 +176,12 @@ function RoomGrid({
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {rooms.map((room) => (
-        <li key={room.id} className="rounded-xl border bg-card p-4">
-          <button type="button" className="w-full text-left" onClick={() => onOpen(room.id)}>
+        <li key={room.id} className="rounded-xl border bg-card p-3">
+          <button
+            type="button"
+            className="w-full cursor-pointer rounded-lg border bg-muted/50 px-3 py-3 text-left transition-colors hover:bg-muted hover:border-ring/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            onClick={() => onOpen(room.id)}
+          >
             <p className="font-medium">{room.name}</p>
             <p className="mt-1 text-xs text-muted-foreground">
               {room.access === "OWNER"
