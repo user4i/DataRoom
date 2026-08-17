@@ -12,7 +12,8 @@
     "prisma:migrate": "prisma migrate dev",
     "prisma:deploy": "prisma migrate deploy",
     "generate:proposals": "node scripts/generate-proposal-pdfs.mjs",
-    "test": "npm run test:functional",
+    "test": "npm run test:unit && npm run test:functional",
+    "test:unit": "jest --forceExit",
     "test:functional": "jest --config ./test/jest-functional.json"
   },
   "dependencies": {
