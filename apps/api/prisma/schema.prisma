@@ -16,6 +16,7 @@ model User {
   updatedAt    DateTime   @updatedAt
   dataRooms    DataRoom[]
   shares       Share[]
+  aiSettings   UserAiSettings?
 }
 
 model DataRoom {
@@ -100,6 +101,23 @@ enum ShareKind {
 enum ShareRole {
   VIEWER
   EDITOR
+}
+
+enum AiProvider {
+  GEMINI
+  OPENAI_COMPATIBLE
+}
+
+model UserAiSettings {
+  userId       String     @id
+  user         User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  locale       String     @default("en")
+  provider     AiProvider @default(OPENAI_COMPATIBLE)
+  baseUrl      String?
+  model        String?
+  apiKeyCipher String?
+  apiKeyLast4  String?
+  updatedAt    DateTime   @updatedAt
 }
 
 model Share {

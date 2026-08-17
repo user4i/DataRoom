@@ -91,3 +91,14 @@ export type DeletionPreviewDto = {
     people: string[];
   };
 };
+
+export type AiProvider = "GEMINI" | "OPENAI_COMPATIBLE";
+
+export type AiSettingsDto = {
+  locale: "en" | "uk";
+  provider: AiProvider;
+  baseUrl: string | null;
+  model: string | null;
+  hasKey: boolean;
+  apiKeyLast4: string | null;
+};

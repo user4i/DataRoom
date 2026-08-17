@@ -10,6 +10,7 @@ import { FoldersModule } from './folders/folders.module';
 import { FilesModule } from './files/files.module';
 import { SharesModule } from './shares/shares.module';
 import { DevModule } from './dev/dev.module';
+import { AiModule } from './ai/ai.module';
 import { localeMiddleware } from './i18n/locale.middleware';
 
 @Module({
@@ -27,6 +28,7 @@ import { localeMiddleware } from './i18n/locale.middleware';
     FilesModule,
     SharesModule,
     DevModule,
+    AiModule,
   ],
   controllers: [HealthController],
 })
