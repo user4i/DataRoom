@@ -54,6 +54,9 @@ export const apiMessages = {
     statusEmpty: 'Enter a status name',
     statusNameTaken: 'A status with this name already exists',
     statusNotFound: 'Status not found',
+    relationSelf: 'An item cannot be related to itself',
+    relationNotFound: 'Related item not found',
+    relationRoomMismatch: 'Related items must be in the same data room',
   },
   uk: {
     emailTaken: 'Цей email уже зареєстровано',
@@ -110,6 +113,9 @@ export const apiMessages = {
     statusEmpty: 'Вкажіть назву статусу',
     statusNameTaken: 'Статус із такою назвою вже існує',
     statusNotFound: 'Статус не знайдено',
+    relationSelf: 'Елемент не можна пов’язати із самим собою',
+    relationNotFound: 'Пов’язаний елемент не знайдено',
+    relationRoomMismatch: 'Пов’язані елементи мають бути в тій самій кімнаті',
   },
 } as const;
 

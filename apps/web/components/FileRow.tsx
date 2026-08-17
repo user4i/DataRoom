@@ -16,6 +16,7 @@ import { Button } from "@/components/ui/button";
 import { AnalysisStatusBadge } from "@/components/analysis-status-badge";
 import { TagPills } from "@/components/item-tags";
 import { StatusPill } from "@/components/item-status";
+import { RelationPills } from "@/components/item-relations";
 
 export function FileRow({
   file,
@@ -60,6 +61,7 @@ export function FileRow({
         {minimal ? <span className="shrink-0 text-[11px] text-muted-foreground">{formatBytes(file.size)}</span> : null}
         <AnalysisStatusBadge status={file.analysisStatus} />
         <StatusPill status={file.status} />
+        <RelationPills relations={file.relations} />
         <TagPills tags={file.tags} />
       </button>
       <DropdownMenu>

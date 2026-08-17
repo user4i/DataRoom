@@ -3,6 +3,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser, RequestUser } from '../common/current-user.decorator';
 import { AssignTagsDto, CreateTagDefDto, UpdateTagDefDto } from './dto/tags.dto';
 import { AssignStatusDto, CreateStatusDefDto, UpdateStatusDefDto } from './dto/statuses.dto';
+import { AssignRelationsDto } from './dto/relations.dto';
 import { LabelsService } from './labels.service';
 
 @Controller()
@@ -58,5 +59,10 @@ export class LabelsController {
   @Put('statuses')
   assignStatus(@CurrentUser() user: RequestUser, @Body() dto: AssignStatusDto) {
     return this.labels.assignStatus(user.id, dto);
+  }
+
+  @Put('relations')
+  assignRelations(@CurrentUser() user: RequestUser, @Body() dto: AssignRelationsDto) {
+    return this.labels.assignRelations(user.id, dto);
   }
 }

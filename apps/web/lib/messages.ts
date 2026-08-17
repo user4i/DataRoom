@@ -317,6 +317,14 @@ export const en = {
     title: "Status",
     none: "None",
   },
+  relations: {
+    title: "Related",
+    none: "No related items",
+    add: "Add related",
+    search: "Search files and folders",
+    empty: "Nothing found",
+    pickHint: "Select files and folders. Open a folder to browse inside.",
+  },
   comments: {
     title: "Comments",
     placeholder: "Write a comment",
@@ -684,6 +692,14 @@ export const uk: MessageTree<typeof en> = {
   status: {
     title: "Статус",
     none: "Немає",
+  },
+  relations: {
+    title: "Пов’язані",
+    none: "Немає пов’язаних елементів",
+    add: "Додати пов’язані",
+    search: "Пошук файлів і папок",
+    empty: "Нічого не знайдено",
+    pickHint: "Оберіть файли та папки. Відкрийте папку, щоб переглянути вміст.",
   },
   comments: {
     title: "Коментарі",

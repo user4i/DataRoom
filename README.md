@@ -351,9 +351,9 @@ Done:
 - Comments
 - Tags
 - Status
+- Relations
 
 Postponed:
-- Relations
 - Testing (functional) - covering
 - Testing (unit) - covering
 - Testing (visual) - covering

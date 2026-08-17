@@ -32,6 +32,7 @@ model DataRoom {
   folders   Folder[]
   files     File[]
   shares    Share[]
+  resourceLinks ResourceLink[]
 
   @@index([ownerId])
 }
@@ -54,6 +55,8 @@ model Folder {
   comments   Comment[]
   resourceTags ResourceTag[]
   resourceStatus ResourceStatus?
+  linksAsLeft  ResourceLink[] @relation("LinkLeftFolder")
+  linksAsRight ResourceLink[] @relation("LinkRightFolder")
 
   @@index([dataRoomId, parentId])
   @@index([path])
@@ -77,6 +80,8 @@ model File {
   comments   Comment[]
   resourceTags ResourceTag[]
   resourceStatus ResourceStatus?
+  linksAsLeft  ResourceLink[] @relation("LinkLeftFile")
+  linksAsRight ResourceLink[] @relation("LinkRightFile")
 
   @@index([dataRoomId, folderId])
   @@index([folderId, name])
@@ -236,6 +241,30 @@ model ResourceStatus {
 
   @@unique([resourceType, resourceId])
   @@index([statusId])
+}
+
+model ResourceLink {
+  id            String       @id @default(uuid())
+  dataRoomId    String
+  dataRoom      DataRoom     @relation(fields: [dataRoomId], references: [id], onDelete: Cascade)
+  leftType      ResourceType
+  leftId        String
+  rightType     ResourceType
+  rightId       String
+  leftFileId    String?
+  leftFile      File?        @relation("LinkLeftFile", fields: [leftFileId], references: [id], onDelete: Cascade)
+  leftFolderId  String?
+  leftFolder    Folder?      @relation("LinkLeftFolder", fields: [leftFolderId], references: [id], onDelete: Cascade)
+  rightFileId   String?
+  rightFile     File?        @relation("LinkRightFile", fields: [rightFileId], references: [id], onDelete: Cascade)
+  rightFolderId String?
+  rightFolder   Folder?      @relation("LinkRightFolder", fields: [rightFolderId], references: [id], onDelete: Cascade)
+  createdAt     DateTime     @default(now())
+
+  @@unique([leftType, leftId, rightType, rightId])
+  @@index([leftType, leftId])
+  @@index([rightType, rightId])
+  @@index([dataRoomId])
 }
 
 model Share {

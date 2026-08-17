@@ -14,6 +14,13 @@ export type OwnerDto = {
   email: string;
 };
 
+export type RelatedItemDto = {
+  resourceType: "FILE" | "FOLDER";
+  resourceId: string;
+  name: string;
+  dataRoomId: string;
+};
+
 export type DataRoomDto = {
   id: string;
   name: string;
@@ -38,6 +45,7 @@ export type FolderDto = {
   analysisStatus?: AnalysisPublicStatus;
   tags?: { id: string; name: string }[];
   status?: { id: string; name: string } | null;
+  relations?: RelatedItemDto[];
 };
 
 export type FileDto = {
@@ -54,6 +62,7 @@ export type FileDto = {
   analysisStatus?: AnalysisPublicStatus;
   tags?: { id: string; name: string }[];
   status?: { id: string; name: string } | null;
+  relations?: RelatedItemDto[];
 };
 
 export type BreadcrumbItem = {

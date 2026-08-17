@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { FileDto, FolderDto, OwnerDto, ResourceType, ShareDto } from "@dataroom/shared";
+import type { FileDto, FolderDto, OwnerDto, RelatedItemDto, ResourceType, ShareDto } from "@dataroom/shared";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { api, ApiError } from "@/lib/api";
@@ -11,6 +11,7 @@ import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 import { CommentsPanel } from "@/components/comments-panel";
 import { ItemTags } from "@/components/item-tags";
 import { ItemStatus } from "@/components/item-status";
+import { ItemRelations } from "@/components/item-relations";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -30,9 +31,13 @@ export type ItemDetails = {
   publicToken?: string;
   tags?: { id: string; name: string }[];
   status?: { id: string; name: string } | null;
+  relations?: RelatedItemDto[];
+  dataRoomId?: string;
   onAnalysisQueued?: () => void;
   onTagsChange?: (tags: { id: string; name: string }[]) => void;
   onStatusChange?: (status: { id: string; name: string } | null) => void;
+  onRelationsChange?: (items: RelatedItemDto[]) => void;
+  onRelatedNavigate?: () => void;
 };
 
 export function detailsFromFolder(
@@ -46,6 +51,8 @@ export function detailsFromFolder(
     onAnalysisQueued?: () => void;
     onTagsChange?: (tags: { id: string; name: string }[]) => void;
     onStatusChange?: (status: { id: string; name: string } | null) => void;
+    onRelationsChange?: (items: RelatedItemDto[]) => void;
+    onRelatedNavigate?: () => void;
   },
 ): ItemDetails {
   return {
@@ -64,9 +71,13 @@ export function detailsFromFolder(
     publicToken: extras?.publicToken,
     tags: folder.tags,
     status: folder.status ?? null,
+    relations: folder.relations ?? [],
+    dataRoomId: folder.dataRoomId,
     onAnalysisQueued: extras?.onAnalysisQueued,
     onTagsChange: extras?.onTagsChange,
     onStatusChange: extras?.onStatusChange,
+    onRelationsChange: extras?.onRelationsChange,
+    onRelatedNavigate: extras?.onRelatedNavigate,
   };
 }
 
@@ -82,6 +93,8 @@ export function detailsFromFile(
     onAnalysisQueued?: () => void;
     onTagsChange?: (tags: { id: string; name: string }[]) => void;
     onStatusChange?: (status: { id: string; name: string } | null) => void;
+    onRelationsChange?: (items: RelatedItemDto[]) => void;
+    onRelatedNavigate?: () => void;
   },
 ): ItemDetails {
   return {
@@ -101,9 +114,13 @@ export function detailsFromFile(
     publicToken: extras?.publicToken,
     tags: file.tags,
     status: file.status ?? null,
+    relations: file.relations ?? [],
+    dataRoomId: file.dataRoomId,
     onAnalysisQueued: extras?.onAnalysisQueued,
     onTagsChange: extras?.onTagsChange,
     onStatusChange: extras?.onStatusChange,
+    onRelationsChange: extras?.onRelationsChange,
+    onRelatedNavigate: extras?.onRelatedNavigate,
   };
 }
 
@@ -253,6 +270,18 @@ export function ItemDetailsList({
           status={details.status ?? null}
           canEdit={Boolean(details.canAnalyze)}
           onChange={details.onStatusChange}
+        />
+      ) : null}
+      {details.resourceType && details.resourceId ? (
+        <ItemRelations
+          resourceType={details.resourceType}
+          resourceId={details.resourceId}
+          dataRoomId={details.dataRoomId}
+          publicToken={details.publicToken}
+          relations={details.relations ?? []}
+          canEdit={Boolean(details.canAnalyze)}
+          onChange={details.onRelationsChange}
+          onNavigate={details.onRelatedNavigate}
         />
       ) : null}
       {details.resourceType && details.resourceId ? (
