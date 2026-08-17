@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { api, ApiError } from "@/lib/api";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
+import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -20,11 +21,12 @@ export type ItemDetails = {
   versionCount?: number;
   resourceType?: ResourceType;
   resourceId?: string;
+  canAnalyze?: boolean;
 };
 
 export function detailsFromFolder(
   folder: FolderDto,
-  extras?: { location?: string; owner?: OwnerDto },
+  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean },
 ): ItemDetails {
   return {
     kind: "folder",
@@ -37,12 +39,13 @@ export function detailsFromFolder(
     location: extras?.location,
     resourceType: "FOLDER",
     resourceId: folder.id,
+    canAnalyze: extras?.canAnalyze,
   };
 }
 
 export function detailsFromFile(
   file: FileDto,
-  extras?: { location?: string; owner?: OwnerDto; versionCount?: number },
+  extras?: { location?: string; owner?: OwnerDto; versionCount?: number; canAnalyze?: boolean },
 ): ItemDetails {
   return {
     kind: "file",
@@ -56,6 +59,7 @@ export function detailsFromFile(
     location: extras?.location,
     resourceType: "FILE",
     resourceId: file.id,
+    canAnalyze: extras?.canAnalyze,
   };
 }
 
@@ -163,6 +167,14 @@ export function ItemDetailsList({ details }: { details: ItemDetails }) {
       </dl>
       {details.resourceType && details.resourceId ? (
         <ShareAccessSection resourceType={details.resourceType} resourceId={details.resourceId} />
+      ) : null}
+      {details.resourceType && details.resourceId ? (
+        <AiAnalysisPanel
+          resourceType={details.resourceType}
+          resourceId={details.resourceId}
+          canEdit={Boolean(details.canAnalyze)}
+          kinds={details.kind === "folder" ? ["FOLDER_SUMMARY"] : ["FILE_SUMMARY"]}
+        />
       ) : null}
     </div>
   );

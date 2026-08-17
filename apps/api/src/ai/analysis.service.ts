@@ -1,6 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { AnalysisKind, AnalysisStatus, ResourceType } from '@prisma/client';
+import { AccessService } from '../access/access.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { t } from '../i18n/t';
 import { AiSettingsService } from './ai-settings.service';
 
 @Injectable()
@@ -8,7 +10,42 @@ export class AnalysisService {
   constructor(
     private prisma: PrismaService,
     private settings: AiSettingsService,
+    private access: AccessService,
   ) {}
+
+  async enqueueFromDto(
+    userId: string,
+    resourceType: ResourceType,
+    resourceId: string,
+    kind: AnalysisKind,
+  ) {
+    if (resourceType === 'FILE' && kind !== 'FILE_SUMMARY') {
+      throw new BadRequestException(t('aiKindMismatch'));
+    }
+    if (resourceType === 'FOLDER' && kind === 'FILE_SUMMARY') {
+      throw new BadRequestException(t('aiKindMismatch'));
+    }
+    const dataRoomId =
+      resourceType === 'FILE'
+        ? (await this.access.getFileOrThrow(resourceId)).dataRoomId
+        : (await this.access.getFolderOrThrow(resourceId)).dataRoomId;
+    await this.access.assertCanEdit(userId, dataRoomId);
+    if (resourceType === 'FOLDER' && kind === 'FOLDER_SUMMARY') {
+      const summary = await this.enqueue({ userId, dataRoomId, resourceType, resourceId, kind: 'FOLDER_SUMMARY' });
+      const compare = await this.enqueue({ userId, dataRoomId, resourceType, resourceId, kind: 'FOLDER_COMPARE' });
+      return [summary, compare];
+    }
+    return [await this.enqueue({ userId, dataRoomId, resourceType, resourceId, kind })];
+  }
+
+  async listForViewer(userId: string, resourceType: ResourceType, resourceId: string) {
+    const dataRoomId =
+      resourceType === 'FILE'
+        ? (await this.access.getFileOrThrow(resourceId)).dataRoomId
+        : (await this.access.getFolderOrThrow(resourceId)).dataRoomId;
+    await this.access.assertCanView({ userId, dataRoomId, fileId: resourceType === 'FILE' ? resourceId : undefined, folderId: resourceType === 'FOLDER' ? resourceId : undefined });
+    return this.getForResource(resourceType, resourceId);
+  }
 
   async enqueue(params: {
     userId: string;

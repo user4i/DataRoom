@@ -100,6 +100,7 @@ export function FileViewer({
               <ItemDetailsList
                 details={detailsFromFile(data.file, {
                   location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
+                  canAnalyze: !publicToken,
                 })}
               />
             </aside>

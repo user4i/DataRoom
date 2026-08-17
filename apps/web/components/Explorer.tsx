@@ -260,6 +260,7 @@ export function Explorer({
                   detailsFromFolder(folder, {
                     owner,
                     location: listing.breadcrumbs.slice(0, -1).map((item) => item.name).join(" / "),
+                    canAnalyze: canEdit,
                   }),
                 );
               }}
@@ -422,7 +423,7 @@ export function Explorer({
             folders={listing.folders}
             onOpen={openFolder}
             canEdit={canEdit}
-            onDetails={(folder) => setDetails(detailsFromFolder(folder, { owner, location }))}
+            onDetails={(folder) => setDetails(detailsFromFolder(folder, { owner, location, canAnalyze: canEdit }))}
             onRename={(folder) => setRenameTarget({ type: "folder", id: folder.id, name: folder.name })}
             onShare={(folder) => setShare({ type: "FOLDER", id: folder.id })}
             onDelete={async (folder) => {
@@ -448,10 +449,22 @@ export function Explorer({
                     file={file}
                     onOpen={openFile}
                     canEdit={canEdit}
-                    onDetails={(f) => setDetails(detailsFromFile(f, { owner, location }))}
+                    onDetails={(f) => setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }))}
                     onRename={(f) => setRenameTarget({ type: "file", id: f.id, name: f.name })}
                     onMove={setMoveFile}
                     onShare={(f) => setShare({ type: "FILE", id: f.id })}
+                    onAnalyze={async (f) => {
+                      try {
+                        await api("/ai/analyze", {
+                          method: "POST",
+                          body: JSON.stringify({ resourceType: "FILE", resourceId: f.id, kind: "FILE_SUMMARY" }),
+                        });
+                        toast.success(t("ai.queued"));
+                        setDetails(detailsFromFile(f, { owner, location, canAnalyze: canEdit }));
+                      } catch (err) {
+                        toast.error(err instanceof ApiError ? err.message : t("ai.failed"));
+                      }
+                    }}
                     onDelete={async (f) => {
                       if (!confirm(t("explorer.deleteFileConfirm", { name: f.name }))) return;
                       try {

@@ -35,6 +35,7 @@ export type FolderDto = {
   createdAt: string;
   updatedAt: string;
   owner?: OwnerDto;
+  analysisStatus?: AnalysisPublicStatus;
 };
 
 export type FileDto = {
@@ -48,6 +49,7 @@ export type FileDto = {
   updatedAt: string;
   owner?: OwnerDto;
   versionCount?: number;
+  analysisStatus?: AnalysisPublicStatus;
 };
 
 export type BreadcrumbItem = {
@@ -101,4 +103,19 @@ export type AiSettingsDto = {
   model: string | null;
   hasKey: boolean;
   apiKeyLast4: string | null;
+};
+
+export type AnalysisKind = "FILE_SUMMARY" | "FOLDER_SUMMARY" | "FOLDER_COMPARE";
+export type AnalysisPublicStatus = "no" | "in_process" | "done" | "failed";
+
+export type AnalysisDto = {
+  id: string;
+  resourceType: ResourceType;
+  resourceId: string;
+  kind: AnalysisKind;
+  status: AnalysisPublicStatus;
+  html: string | null;
+  error: string | null;
+  locale: string;
+  updatedAt: string;
 };

@@ -131,3 +131,43 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
 }
+
+.ai-html .ai-summary {
+  margin-bottom: 0.75rem;
+}
+.ai-html .ai-line {
+  border-radius: 0.4rem;
+  margin: 0.35rem 0;
+  padding: 0.4rem 0.55rem;
+}
+.ai-html .ai-green {
+  background: color-mix(in oklch, var(--primary) 12%, transparent);
+  box-shadow: inset 3px 0 0 oklch(0.62 0.15 145);
+}
+.ai-html .ai-yellow {
+  background: oklch(0.93 0.08 95 / 0.55);
+  box-shadow: inset 3px 0 0 oklch(0.8 0.15 85);
+}
+.ai-html .ai-red {
+  background: color-mix(in oklch, var(--destructive) 14%, transparent);
+  box-shadow: inset 3px 0 0 var(--destructive);
+}
+.ai-html .ai-alert {
+  background: oklch(0.7 0.18 310 / 0.18);
+  box-shadow: inset 3px 0 0 oklch(0.55 0.22 310);
+}
+.ai-html .ai-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+.ai-html .ai-table th,
+.ai-html .ai-table td {
+  border: 1px solid var(--border);
+  padding: 0.35rem 0.45rem;
+  text-align: left;
+}
+.ai-html .ai-row.ai-green td { background: color-mix(in oklch, var(--primary) 10%, transparent); }
+.ai-html .ai-row.ai-yellow td { background: oklch(0.93 0.08 95 / 0.4); }
+.ai-html .ai-row.ai-red td { background: color-mix(in oklch, var(--destructive) 12%, transparent); }
+.ai-html .ai-row.ai-alert td { background: oklch(0.7 0.18 310 / 0.16); }

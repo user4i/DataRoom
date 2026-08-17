@@ -23,6 +23,7 @@ export function FileRow({
   onMove,
   onShare,
   onDelete,
+  onAnalyze,
 }: {
   file: FileDto;
   onOpen: (file: FileDto) => void;
@@ -32,6 +33,7 @@ export function FileRow({
   onMove: (file: FileDto) => void;
   onShare: (file: FileDto) => void;
   onDelete: (file: FileDto) => void;
+  onAnalyze?: (file: FileDto) => void;
 }) {
   const { t, locale } = useI18n();
   const { dense, minimal } = useDensityFlags();
@@ -61,6 +63,9 @@ export function FileRow({
         <DropdownMenuContent align="end">
           <DropdownMenuItem onClick={() => onOpen(file)}>{t("fileMenu.view")}</DropdownMenuItem>
           <DropdownMenuItem onClick={() => onDetails(file)}>{t("common.details")}</DropdownMenuItem>
+          {canEdit && onAnalyze ? (
+            <DropdownMenuItem onClick={() => onAnalyze(file)}>{t("ai.analyze")}</DropdownMenuItem>
+          ) : null}
           {canEdit ? (
             <>
               <DropdownMenuSeparator />

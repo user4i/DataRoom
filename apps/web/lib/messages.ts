@@ -275,6 +275,21 @@ export const en = {
     saveFailed: "Could not save the file",
     connectFailed: "Could not connect to storage ({url})",
   },
+  ai: {
+    title: "AI analysis",
+    analyze: "Analyze",
+    queued: "Analysis queued",
+    failed: "Could not start analysis",
+    none: "No analysis yet",
+    inProcess: "In process",
+    done: "Done",
+    failedStatus: "Failed",
+    kind: {
+      FILE_SUMMARY: "Document summary",
+      FOLDER_SUMMARY: "Folder summary",
+      FOLDER_COMPARE: "Folder comparison",
+    },
+  },
   fileMenu: {
     view: "View",
     move: "Move",
@@ -593,6 +608,21 @@ export const uk: typeof en = {
     clear: "Очистити список",
     saveFailed: "Не вдалося зберегти файл",
     connectFailed: "Не вдалося з’єднатися зі сховищем ({url})",
+  },
+  ai: {
+    title: "AI-аналіз",
+    analyze: "Аналізувати",
+    queued: "Аналіз у черзі",
+    failed: "Не вдалося запустити аналіз",
+    none: "Аналізу ще немає",
+    inProcess: "У процесі",
+    done: "Готово",
+    failedStatus: "Помилка",
+    kind: {
+      FILE_SUMMARY: "Підсумок документа",
+      FOLDER_SUMMARY: "Підсумок папки",
+      FOLDER_COMPARE: "Порівняння в папці",
+    },
   },
   fileMenu: {
     view: "Переглянути",

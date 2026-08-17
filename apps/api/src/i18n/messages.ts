@@ -41,6 +41,8 @@ export const apiMessages = {
     invalidDownloadToken: 'Invalid download token',
     uniqueName: 'An item with this name already exists here',
     internalError: 'Internal server error',
+    aiBaseUrlRequired: 'Set an API URL for the OpenAI-compatible provider',
+    aiKindMismatch: 'This analysis type does not match the item',
   },
   uk: {
     emailTaken: 'Цей email уже зареєстровано',
@@ -84,6 +86,8 @@ export const apiMessages = {
     invalidDownloadToken: 'Недійсний токен завантаження файлу',
     uniqueName: 'Елемент із такою назвою вже існує тут',
     internalError: 'Внутрішня помилка сервера',
+    aiBaseUrlRequired: 'Вкажіть API URL для OpenAI-compatible провайдера',
+    aiKindMismatch: 'Цей тип аналізу не підходить до елемента',
   },
 } as const;
 

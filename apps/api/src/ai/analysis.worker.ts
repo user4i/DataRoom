@@ -1,8 +1,13 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { AnalysisKind } from '@prisma/client';
+import { AnalysisKind, ResourceType } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
-import { extractPdfText, hashBuffer, escapeHtml } from './pdf-text';
+import { AiSettingsService } from './ai-settings.service';
+import { LlmService } from './llm.service';
+import { payloadToHtml } from './html';
+import { parseAiPayload } from './payload';
+import { extractPdfText, hashBuffer } from './pdf-text';
+import { fileSummaryPrompt, folderComparePrompt, folderSummaryPrompt } from './prompt';
 
 const TICK_MS = 2000;
 const STALE_MS = 5 * 60 * 1000;
@@ -16,6 +21,8 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
   constructor(
     private prisma: PrismaService,
     private storage: StorageService,
+    private settings: AiSettingsService,
+    private llm: LlmService,
   ) {}
 
   onModuleInit() {
@@ -43,12 +50,12 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
         data: { status: 'RUNNING', error: null },
       });
       try {
-        await this.process(job.id, job.kind, job.resourceType, job.resourceId);
+        await this.process(job.id, job.kind, job.resourceType, job.resourceId, job.requestedBy, job.locale);
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Analysis failed';
         await this.prisma.analysis.update({
           where: { id: job.id },
-          data: { status: 'FAILED', error: message.slice(0, 500) },
+          data: { status: 'FAILED', error: message.slice(0, 800) },
         });
       }
     } finally {
@@ -64,30 +71,97 @@ export class AnalysisWorker implements OnModuleInit, OnModuleDestroy {
     });
   }
 
-  private async process(id: string, kind: AnalysisKind, resourceType: string, resourceId: string) {
+  private async process(
+    id: string,
+    kind: AnalysisKind,
+    resourceType: ResourceType,
+    resourceId: string,
+    userId: string,
+    localeRaw: string,
+  ) {
+    const locale = localeRaw === 'uk' ? 'uk' : 'en';
+    const settings = await this.settings.get(userId);
+    const apiKey = await this.settings.decryptedKey(userId);
+    if (!apiKey) throw new Error('Add an AI API key in Settings');
+
     if (kind === 'FILE_SUMMARY' && resourceType === 'FILE') {
       const file = await this.prisma.file.findUnique({ where: { id: resourceId } });
       if (!file) throw new Error('File not found');
       const buffer = await this.storage.getBuffer(file.storageKey);
       if (!buffer) throw new Error('The file is missing from storage');
       const text = await extractPdfText(buffer);
-      const contentHash = hashBuffer(buffer);
-      const html = `<pre class="ai-extract">${escapeHtml(text.slice(0, 20000))}</pre>`;
+      const raw = await this.llm.complete({
+        provider: settings.provider,
+        apiKey,
+        baseUrl: settings.baseUrl,
+        model: settings.model,
+        prompt: fileSummaryPrompt(locale, file.name, text || '(empty PDF text)'),
+      });
+      const payload = parseAiPayload(raw);
       await this.prisma.analysis.update({
         where: { id },
         data: {
           status: 'DONE',
-          html,
-          payloadJson: { extractedChars: text.length, text: text.slice(0, 50000) },
-          contentHash,
+          html: payloadToHtml(payload),
+          payloadJson: payload as object,
+          contentHash: hashBuffer(buffer),
           error: null,
         },
       });
       return;
     }
-    await this.prisma.analysis.update({
-      where: { id },
-      data: { status: 'FAILED', error: 'This analysis kind is not implemented yet' },
+
+    if ((kind === 'FOLDER_SUMMARY' || kind === 'FOLDER_COMPARE') && resourceType === 'FOLDER') {
+      const corpus = await this.folderCorpus(resourceId);
+      const prompt =
+        kind === 'FOLDER_SUMMARY'
+          ? folderSummaryPrompt(locale, corpus.folderName, corpus.text)
+          : folderComparePrompt(locale, corpus.folderName, corpus.text);
+      const raw = await this.llm.complete({
+        provider: settings.provider,
+        apiKey,
+        baseUrl: settings.baseUrl,
+        model: settings.model,
+        prompt,
+      });
+      const payload = parseAiPayload(raw);
+      await this.prisma.analysis.update({
+        where: { id },
+        data: {
+          status: 'DONE',
+          html: payloadToHtml(payload),
+          payloadJson: payload as object,
+          contentHash: corpus.hash,
+          error: null,
+        },
+      });
+      return;
+    }
+
+    throw new Error('Unsupported analysis kind');
+  }
+
+  private async folderCorpus(folderId: string) {
+    const folder = await this.prisma.folder.findUnique({ where: { id: folderId } });
+    if (!folder) throw new Error('Folder not found');
+    const files = await this.prisma.file.findMany({ where: { folderId } });
+    const children = await this.prisma.folder.findMany({ where: { parentId: folderId } });
+    const childFiles = await this.prisma.file.findMany({
+      where: { folderId: { in: children.map((c) => c.id) } },
     });
+    const chunks: string[] = [`Folder: ${folder.name}`];
+    const hashParts: string[] = [];
+    for (const file of [...files, ...childFiles]) {
+      const buffer = await this.storage.getBuffer(file.storageKey);
+      const text = buffer ? await extractPdfText(buffer) : '(missing blob)';
+      const where = file.folderId === folderId ? 'in folder' : 'in subfolder';
+      chunks.push(`--- FILE ${file.name} (${where}) ---\n${text.slice(0, 8000)}`);
+      hashParts.push(file.id, file.updatedAt.toISOString(), String(file.size));
+    }
+    for (const child of children) {
+      chunks.push(`--- SUBFOLDER ${child.name} (${child.itemCount} items) ---`);
+      hashParts.push(child.id, child.updatedAt.toISOString());
+    }
+    return { folderName: folder.name, text: chunks.join('\n\n'), hash: hashParts.join('|') };
   }
 }
