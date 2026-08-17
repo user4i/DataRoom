@@ -1,53 +1,77 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { randomUUID } from 'crypto';
+import { readFile } from 'fs/promises';
+import { join } from 'path';
 import { AccessService } from '../access/access.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { StorageService } from '../storage/storage.service';
 import { SeedScale } from './dto/seed.dto';
 
 const PDF = 'application/pdf';
+const PROPOSAL_FIXTURES = join(__dirname, '..', '..', 'fixtures', 'proposals');
 
 type FolderSpec = { name: string; children?: FolderSpec[]; files: string[] };
 
 const MINIMAL: { rootFiles: string[]; folders: FolderSpec[] } = {
-  rootFiles: ['Welcome.pdf', 'Room overview.pdf'],
+  rootFiles: ['Green-Valley-offer-2026-04-12.pdf', 'AgroSmak-proposal-88-03.pdf'],
   folders: [
-    { name: 'Legal', files: ['NDA.pdf'] },
-    { name: 'Finance', files: [] },
+    { name: 'Scans', files: ['Green-Valley-offer-SCAN-2026-01-20.pdf'] },
+    { name: 'Intermediaries', files: ['Baltic-Trade-Hub-agent-offer.pdf'] },
   ],
 };
 
 const MEDIUM: { rootFiles: string[]; folders: FolderSpec[] } = {
-  rootFiles: ['Welcome.pdf', 'Index.pdf', 'Process memo.pdf', 'FAQ.pdf'],
+  rootFiles: ['Green-Valley-offer-2026-04-12.pdf', 'Delta-Fresh-quote-Q-441.pdf'],
   folders: [
     {
-      name: 'Legal',
-      files: ['NDA.pdf', 'Articles.pdf'],
-      children: [{ name: 'Contracts', files: ['MSA.pdf', 'SOW.pdf'] }],
+      name: 'Direct suppliers',
+      files: ['Noord-Groente-pricelist-W12.pdf', 'Iberia-Citrus-weekly-2026-03-09.pdf', 'Horizon-Coop-week16.pdf'],
     },
+    { name: 'Ukraine', files: ['AgroSmak-proposal-88-03.pdf', 'FG-Sadok-SCAN.pdf'] },
+    { name: 'Intermediaries', files: ['Baltic-Trade-Hub-agent-offer.pdf', 'Logistic-Plus-agent.pdf'] },
     {
-      name: 'Finance',
-      files: ['Budget.pdf', 'Cap table.pdf'],
-      children: [{ name: 'Reports', files: ['Q1.pdf', 'Q2.pdf'] }],
+      name: 'Questionable',
+      files: ['EuroBest-Produce-special.pdf', 'CashLot-no-VAT-SCAN.pdf', 'Shid-Produkt-overcharge.pdf'],
     },
-    { name: 'HR', files: ['Org chart.pdf', 'Handbook.pdf'] },
-    { name: 'Technical', files: ['Architecture.pdf'] },
   ],
 };
 
 function heavySpec(): { rootFiles: string[]; folders: FolderSpec[] } {
-  const departments = ['Legal', 'Finance', 'HR', 'Technical', 'Commercial', 'Operations'];
-  const subfolders = ['Contracts', 'Reports', 'Archive'];
   return {
-    rootFiles: Array.from({ length: 12 }, (_, i) => `Root memo ${String(i + 1).padStart(2, '0')}.pdf`),
-    folders: departments.map((name) => ({
-      name,
-      files: [`${name} overview.pdf`, `${name} checklist.pdf`],
-      children: subfolders.map((child) => ({
-        name: child,
-        files: Array.from({ length: 4 }, (_, i) => `${name} ${child} ${i + 1}.pdf`),
-      })),
-    })),
+    rootFiles: [
+      'Green-Valley-offer-2026-04-12.pdf',
+      'Delta-Fresh-quote-Q-441.pdf',
+      'AgroSmak-proposal-88-03.pdf',
+    ],
+    folders: [
+      {
+        name: 'Direct suppliers',
+        files: ['Horizon-Coop-week16.pdf'],
+        children: [
+          { name: 'Netherlands', files: ['Noord-Groente-pricelist-W12.pdf', 'Delta-warehouse-note-SCAN.pdf'] },
+          { name: 'Spain', files: ['Iberia-Citrus-weekly-2026-03-09.pdf', 'Iberia-copy-stamp-SCAN.pdf'] },
+          { name: 'United Kingdom', files: ['Kent-Orchards-fax-SCAN.pdf', 'Green-Valley-offer-SCAN-2026-01-20.pdf'] },
+        ],
+      },
+      { name: 'Ukraine', files: ['FG-Sadok-SCAN.pdf', 'Shid-Produkt-overcharge.pdf'] },
+      {
+        name: 'Intermediaries',
+        files: ['Baltic-Trade-Hub-agent-offer.pdf', 'Logistic-Plus-agent.pdf'],
+        children: [
+          {
+            name: 'Disputed',
+            files: [
+              'EuroBest-Produce-special.pdf',
+              'AgroLink-resale-SCAN.pdf',
+              'Mediator-markup-SCAN.pdf',
+              'Twin-count-offer-SCAN.pdf',
+              'CashLot-no-VAT-SCAN.pdf',
+              'Broker-Odesa-SCAN.pdf',
+            ],
+          },
+        ],
+      },
+    ],
   };
 }
 
@@ -117,7 +141,12 @@ export class DevService {
   }
 
   private async addFile(dataRoomId: string, folderId: string | null, name: string) {
-    const body = buildPdf(name);
+    let body: Buffer;
+    try {
+      body = await readFile(join(PROPOSAL_FIXTURES, name));
+    } catch {
+      throw new InternalServerErrorException(`Missing proposal fixture: ${name}`);
+    }
     const storageKey = `rooms/${dataRoomId}/${randomUUID()}.pdf`;
     await this.storage.put(storageKey, body);
     await this.prisma.file.create({
@@ -154,30 +183,4 @@ export class DevService {
       }),
     );
   }
-}
-
-function buildPdf(title: string): Buffer {
-  const escaped = title.replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
-  const content = `BT /F1 16 Tf 72 720 Td (${escaped}) Tj ET`;
-  const objects = [
-    '1 0 obj<< /Type /Catalog /Pages 2 0 R >>endobj\n',
-    '2 0 obj<< /Type /Pages /Kids [3 0 R] /Count 1 >>endobj\n',
-    '3 0 obj<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>endobj\n',
-    `4 0 obj<< /Length ${Buffer.byteLength(content)} >>stream\n${content}\nendstream\nendobj\n`,
-    '5 0 obj<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>endobj\n',
-  ];
-  let body = '%PDF-1.4\n';
-  const offsets = [0];
-  for (const obj of objects) {
-    offsets.push(Buffer.byteLength(body));
-    body += obj;
-  }
-  const xrefPos = Buffer.byteLength(body);
-  let xref = 'xref\n0 6\n0000000000 65535 f \n';
-  for (let i = 1; i <= 5; i += 1) {
-    xref += `${String(offsets[i]).padStart(10, '0')} 00000 n \n`;
-  }
-  body += `${xref}trailer<< /Size 6 /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF\n`;
-  const pad = Buffer.byteLength(title) * 17 + 120;
-  return Buffer.concat([Buffer.from(body), Buffer.from(`\n% ${'x'.repeat(pad)}`)]);
 }
