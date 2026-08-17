@@ -234,45 +234,53 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 ### How do you compute size / count of a subtree?
 
-- 
+1. Recursive - only for small trees.
+2. By materialized path index 
+3. By real-time updating (afеer changes) of all folders size / count of a subtree.
+4. The best is 3 (or combining (3 and 2) or (3 and 1))
 
 ### How would this work with 100k files in a room?
 
+- B-Tree index, cursor-based pagination, No OFFSET, but WHERE 
+- Indexing by (folderId, name)
+- Special indexing in pair by (folderId and createdAt/updatedAt) or (folderId and size)
+
 ### How would you add viewer vs editor roles later?
 
-- Low level folders/files inherits roles on lowest levels, where it is determinated.
+- Low level folders/files inherit roles in parent tree from top to down but nearest role limit overwrites it (strict inspection)
+- Cascade permission inheritance
 
 ## Where (steps) and how AI was used
 
 ### 1. Base project setup - 
 
 **AI usage** -- step-by-step plan by task
-*My part -- General quick analizing, creating Gighub Project, informig AI that node versions are organized with nvm (Node Version Manager)*
+*My side -- General quick analizing, creating Gighub Project, informig AI that node versions are organized with nvm (Node Version Manager)*
 
 ### 2. Base project setup - developed
 
 **AI usage** -- fully, commits
-*My part -- analyzing the process*
+*My side -- analyzing the process*
 
 ### 3. Local and remote deploy - preparation
 
 **AI usage** -- insturctions and partial automation
-*My part -- Some technical moments. I changed plan with direct uploading files to Vercel/Render/Neon by Github CI/CD (Actions).*
+*My side -- Some technical moments. I changed plan with direct uploading files to Vercel/Render/Neon by Github CI/CD (Actions).*
 
 ### 5. Testing, some small corrections, project clearing, README changes - 
 
 **AI usage** -- just analything, commits
-*My part -- most.*
+*My side -- most.*
 
 ### 6. Double checking base version by task details.
 
 **AI usage** -- partially.
-*My part -- partially.*
+*My side -- partially.*
 
 ### 7. UX Optimizing (quick). 
 
 **AI usage** -- partially.
-*My part -- partially, ahead of process, anlizing result and code changes. E.g. sometimes AI doesn't understand, where to place element on page, so better to personally change the code.*
+*My side -- partially, ahead of process, anlizing result and code changes. E.g. sometimes AI doesn't understand, where to place element on page, so better to personally change the code.*
 
 - Layout
 - loader
@@ -284,7 +292,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 ### 8. Thinking part personal double check and Deliverables, optimization
 
 **AI usage** -- partially.
-*My part -- partially.*
+*My side -- partially.*
 
 - Same file name at uploading and moving, in all places english
 - Deleting or moving a folder that is now being viewed by someone - avoid this situation or allow deletion with greater rights.
@@ -309,41 +317,45 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 - Commit after any important change (optimal mode)
 
 **AI usage** -- partially.
-*My part -- partially.*
+*My side -- partially.*
 
 ### 10. Extra credit (in process)
 
 **AI usage** -- partially.
-*My part -- partially.*
+*My side -- partially.*
 
 - Searching
 - Filtering
-- Versioning at uploading or moving
+- Versioning at uploading or moving (when replacing)
 
 ### 11. My extra (in process)
 
 **AI usage** -- partially.
-*My part -- partially.*
+*My side -- partially.*
 
-- Testing (functional)
+Done:
+- Testing (functional) - base
 - Multilanguage
+
+Postponed:
 - Tags
 - Relations
 - Status
 - Comments
+- Testing (functional) - covering
 - Testing (unit)
 - Testing (visual)
 
 ### 12. Most commits messages by AI (and auto commit)
 
 **AI usage** -- commit message, commit.
-*My part -- check code, especially from starting base version optimization.*
+*My side -- check code, especially from starting base version optimization.*
 
 ## Time spending
 
 ~1 hour = Plan + Base Development
 ~1 hour = Deploy
-~1.5 hours = Testing, code clearing, my part of README
+~1.5 hours = Testing, code clearing, My side of README
 ~1 hour = UX Optimizing / Debug options (Layout, loader or peogress bar, file/folder details, test data in development mode)
 ~2.5 hours = Thinking part personal double check and Deliverables, optimization
 ~1 hour = AI-analysis (in process)
