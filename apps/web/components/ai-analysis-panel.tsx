@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { AnalysisDto, AnalysisKind, ResourceType } from "@dataroom/shared";
 import { api, ApiError } from "@/lib/api";
+import { formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 
@@ -22,7 +23,7 @@ export function AiAnalysisPanel({
   autoRunIfEmpty?: boolean;
   onQueued?: () => void;
 }) {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const kind = kinds[0];
   const [rows, setRows] = useState<AnalysisDto[]>([]);
   const [ready, setReady] = useState(false);
@@ -109,6 +110,7 @@ export function AiAnalysisPanel({
         <div key={row.id} className="space-y-2">
           <p className="text-xs text-muted-foreground">
             {t(`ai.kind.${row.kind}`)} · {statusLabel(row.status)}
+            {row.updatedAt ? ` · ${formatDateTime(row.updatedAt, locale)}` : ""}
           </p>
           {row.error ? <p className="text-sm text-destructive">{formatAnalysisError(row.error, t)}</p> : null}
           {row.html && row.status === "done" ? (
