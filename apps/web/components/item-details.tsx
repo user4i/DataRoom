@@ -192,13 +192,17 @@ export function ItemDetailsDialog({
   const { t } = useI18n();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
+      <DialogContent className="flex max-h-[min(90vh,44rem)] max-w-2xl flex-col gap-4 overflow-hidden">
+        <DialogHeader className="shrink-0">
           <DialogTitle className="pr-6">
             {details ? t("details.title", { name: details.name }) : t("details.titlePlain")}
           </DialogTitle>
         </DialogHeader>
-        {details ? <ItemDetailsList details={details} /> : null}
+        {details ? (
+          <div className="min-h-0 overflow-y-auto overscroll-contain pr-1">
+            <ItemDetailsList details={details} />
+          </div>
+        ) : null}
       </DialogContent>
     </Dialog>
   );

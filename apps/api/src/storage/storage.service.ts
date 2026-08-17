@@ -136,6 +136,8 @@ export class StorageService {
     if (!existsSync(filePath)) return null;
     return readFile(filePath);
   }
+
+  async exists(storageKey: string) {
     if (this.driver() === 's3' && this.s3) {
       try {
         await this.s3.send(
