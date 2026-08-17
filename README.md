@@ -277,7 +277,7 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 - special delay for debug
 - Light/Dark/Medium/System Mode.
 
-### 8. Thinking part personal double check and Deliverables, optimization (in process)
+### 8. Thinking part personal double check and Deliverables, optimization
 
 **AI usage** -- partially.
 *My part -- partially.*
@@ -291,10 +291,18 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 ### 9. AI-analysis (in process)
 
 - Language for AI summary in settings
+- Tests about fruits and vegetables order proposals (list price, quantity, sum)
+- Free AI-service or Payed (Gemini Key) - setup in settings (?url + key)
+- AI-summary or analythis with read, yellow and green lines when some info is strange or optimal or interesting
 - AI-summary about document
 - AI-summary about folder
 - AI-comparation inside folder
-- AI-comparation between subfolder
+- AI-comparation in table format and test summary, with read, yellow and green lines when some info is strange or optimal or interesting, or special color when comparation is very strange.
+- AI-analythis can be done by button click for any file and folder
+- AI-analythis should be done in background (files and subfolders only 1 level) with status about result (no, in process, done)
+- AI-analythis after folder or file update - adding to list or queue for background running
+- AI-analythis could be saved in DB in html format
+- Commit after any important change (optimal mode)
 
 **AI usage** -- partially.
 *My part -- partially.*
