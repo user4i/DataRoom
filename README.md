@@ -240,82 +240,89 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 
 ## Where (steps) and how AI was used
 
-1. Base project setup - 
+### 1. Base project setup - 
 
 **AI usage** -- step-by-step plan by task
 *My part -- General quick analizing, creating Gighub Project, informig AI that node versions are organized with nvm (Node Version Manager)*
 
-2. Base project setup - developed
+### 2. Base project setup - developed
 
 **AI usage** -- fully, commits
 *My part -- analyzing the process*
 
-3. Local and remote deploy - preparation
+### 3. Local and remote deploy - preparation
 
 **AI usage** -- insturctions and partial automation
 *My part -- Some technical moments. I changed plan with direct uploading files to Vercel/Render/Neon by Github CI/CD (Actions).*
 
-5. Testing, some small corrections, project clearing, README changes - 
+### 5. Testing, some small corrections, project clearing, README changes - 
 
 **AI usage** -- just analything, commits
 *My part -- most.*
 
-6. Double checking base version by task details.
+### 6. Double checking base version by task details.
 
 **AI usage** -- partially.
 *My part -- partially.*
 
-7. UX Optimizing (quick). 
+### 7. UX Optimizing (quick). 
 
 **AI usage** -- partially.
 *My part -- partially, ahead of process, anlizing result and code changes. E.g. sometimes AI doesn't understand, where to place element on page, so better to personally change the code.*
 
-Layout, loader, file/folder details, test data in development mode, special delay. Light/Dark/Medium/System Mode.
+- Layout
+- loader
+- file/folder details
+- test data in development mode
+- special delay for debug
+- Light/Dark/Medium/System Mode.
 
-8. Thinking part personal double check and Deliverables, optimization (in process)
-
-**AI usage** -- partially.
-*My part -- partially.*
-
-Same file name at uploading and moving, in all places english
-Deleting or moving a folder that is now being viewed by someone - avoid this situation or allow deletion with greater rights.
-Paginating
-S3
-
-9. AI-analysis (in process)
-Language for AI summary 
-AI-summary about document
-AI-summary about folder
-AI-comparation inside folder
-AI-comparation between subfolder
+### 8. Thinking part personal double check and Deliverables, optimization (in process)
 
 **AI usage** -- partially.
 *My part -- partially.*
 
-9. Extra credit (in process)
+- Same file name at uploading and moving, in all places english
+- Deleting or moving a folder that is now being viewed by someone - avoid this situation or allow deletion with greater rights.
+- Paginating
+- S3
+
+
+### 9. AI-analysis (in process)
+
+- Language for AI summary in settings
+- AI-summary about document
+- AI-summary about folder
+- AI-comparation inside folder
+- AI-comparation between subfolder
 
 **AI usage** -- partially.
 *My part -- partially.*
 
-Searching
-Filtering
-Versioning at uploading or moving
-
-10. My extra (in process)
+### 10. Extra credit (in process)
 
 **AI usage** -- partially.
 *My part -- partially.*
 
-Testing (functional)
-Multilanguage
-Tags
-Relations
-Status
-Comments
-Testing (unit)
-Testing (visual)
+- Searching
+- Filtering
+- Versioning at uploading or moving
 
-11. Most commits messages by AI
+### 11. My extra (in process)
+
+**AI usage** -- partially.
+*My part -- partially.*
+
+- Testing (functional)
+- Multilanguage
+- Tags
+- Relations
+- Status
+- Comments
+- Testing (unit)
+- Testing (visual)
+
+### 12. Most commits messages by AI (and auto commit)
 
 **AI usage** -- commit message, commit.
 *My part -- check code, especially from starting base version optimization.*
@@ -326,4 +333,4 @@ Testing (visual)
 ~1 hour = Deploy
 ~1.5 hours = Testing, code clearing, my part of README
 ~1 hour = UX Optimizing / Debug options (Layout, loader or peogress bar, file/folder details, test data in development mode)
-~1.5 hours = Thinking part personal double check and Deliverables, optimization (in process)
+~2 hours = Thinking part personal double check and Deliverables, optimization
