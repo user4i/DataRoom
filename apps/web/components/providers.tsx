@@ -1,5 +1,6 @@
 "use client";
 
+import { AiSummaryLocaleProvider } from "@/lib/ai-summary-locale";
 import { AuthProvider } from "@/lib/auth";
 import { DensityProvider } from "@/lib/density";
 import { LocaleProvider } from "@/lib/i18n";
@@ -12,8 +13,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <ThemeProvider>
         <AuthProvider>
           <DensityProvider>
-            {children}
-            <RouteProgress />
+            <AiSummaryLocaleProvider>
+              {children}
+              <RouteProgress />
+            </AiSummaryLocaleProvider>
           </DensityProvider>
         </AuthProvider>
       </ThemeProvider>

@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { DensityMenu } from "@/components/density-menu";
 import { DevCommands } from "@/components/dev-commands";
 import { LanguageMenu } from "@/components/language-menu";
+import { SettingsDialog } from "@/components/settings-dialog";
 import { ThemeMenu } from "@/components/theme-menu";
 
 export function AppHeader({ title }: { title?: string }) {
@@ -28,6 +29,7 @@ export function AppHeader({ title }: { title?: string }) {
           <LanguageMenu />
           <ThemeMenu />
           <DensityMenu />
+          <SettingsDialog />
           {user ? <span className="hidden text-sm text-muted-foreground sm:inline">{user.email}</span> : null}
           {user ? (
             <Button variant="outline" size="sm" onClick={logout}>

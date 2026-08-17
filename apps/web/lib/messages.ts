@@ -245,6 +245,11 @@ export const en = {
     wide: "Wide",
     wideHint: "Full toolbar and upload area",
   },
+  settings: {
+    aria: "Settings",
+    title: "Settings",
+    aiLanguage: "Language for AI summary",
+  },
   upload: {
     pdfOnly: "Only PDF files are allowed",
     failed: "Could not upload",
@@ -545,6 +550,11 @@ export const uk: typeof en = {
     compactHint: "Іконки; пошук і завантаження за потреби",
     wide: "Широкий",
     wideHint: "Повна панель і зона завантаження",
+  },
+  settings: {
+    aria: "Налаштування",
+    title: "Налаштування",
+    aiLanguage: "Мова для AI summary",
   },
   upload: {
     pdfOnly: "Дозволені лише файли PDF",
