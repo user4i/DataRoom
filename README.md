@@ -342,3 +342,4 @@ The first production deploy runs only after the secrets below exist, an empty Ve
 ~1.5 hours = Testing, code clearing, my part of README
 ~1 hour = UX Optimizing / Debug options (Layout, loader or peogress bar, file/folder details, test data in development mode)
 ~2 hours = Thinking part personal double check and Deliverables, optimization
+~1 hour = AI-analysis (in process)
