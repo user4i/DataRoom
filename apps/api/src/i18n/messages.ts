@@ -43,6 +43,10 @@ export const apiMessages = {
     internalError: 'Internal server error',
     aiBaseUrlRequired: 'Set an API URL for the OpenAI-compatible provider',
     aiKindMismatch: 'This analysis type does not match the item',
+    commentEmpty: 'Write a comment before posting',
+    commentNotFound: 'Comment not found',
+    commentDeleteForbidden: 'You can only delete your own comments',
+    commentResourceInvalid: 'Comments are only available on files and folders',
   },
   uk: {
     emailTaken: 'Цей email уже зареєстровано',
@@ -88,6 +92,10 @@ export const apiMessages = {
     internalError: 'Внутрішня помилка сервера',
     aiBaseUrlRequired: 'Вкажіть API URL для OpenAI-compatible провайдера',
     aiKindMismatch: 'Цей тип аналізу не підходить до елемента',
+    commentEmpty: 'Напишіть коментар перед публікацією',
+    commentNotFound: 'Коментар не знайдено',
+    commentDeleteForbidden: 'Можна видаляти лише власні коментарі',
+    commentResourceInvalid: 'Коментарі доступні лише для файлів і папок',
   },
 } as const;
 

@@ -99,6 +99,7 @@ export function FileViewer({
                 details={detailsFromFile(data.file, {
                   location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
                   canAnalyze: !publicToken,
+                  publicToken,
                 })}
                 onOpenVersions={!publicToken ? () => setVersionsOpen(true) : undefined}
               />

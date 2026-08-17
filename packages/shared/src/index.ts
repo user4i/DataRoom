@@ -119,3 +119,14 @@ export type AnalysisDto = {
   locale: string;
   updatedAt: string;
 };
+
+export type CommentDto = {
+  id: string;
+  resourceType: ResourceType;
+  resourceId: string;
+  body: string;
+  createdAt: string;
+  author: { id: string; name: string; email: string };
+  mine: boolean;
+  canDelete: boolean;
+};

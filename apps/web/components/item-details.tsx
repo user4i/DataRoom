@@ -8,6 +8,7 @@ import { api, ApiError } from "@/lib/api";
 import { formatBytes, formatDateTime } from "@/lib/format";
 import { useI18n } from "@/lib/i18n";
 import { AiAnalysisPanel } from "@/components/ai-analysis-panel";
+import { CommentsPanel } from "@/components/comments-panel";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -24,12 +25,13 @@ export type ItemDetails = {
   resourceId?: string;
   canAnalyze?: boolean;
   autoAnalyze?: boolean;
+  publicToken?: string;
   onAnalysisQueued?: () => void;
 };
 
 export function detailsFromFolder(
   folder: FolderDto,
-  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean; autoAnalyze?: boolean; onAnalysisQueued?: () => void },
+  extras?: { location?: string; owner?: OwnerDto; canAnalyze?: boolean; autoAnalyze?: boolean; publicToken?: string; onAnalysisQueued?: () => void },
 ): ItemDetails {
   return {
     kind: "folder",
@@ -44,6 +46,7 @@ export function detailsFromFolder(
     resourceId: folder.id,
     canAnalyze: extras?.canAnalyze,
     autoAnalyze: extras?.autoAnalyze,
+    publicToken: extras?.publicToken,
     onAnalysisQueued: extras?.onAnalysisQueued,
   };
 }
@@ -56,6 +59,7 @@ export function detailsFromFile(
     versionCount?: number;
     canAnalyze?: boolean;
     autoAnalyze?: boolean;
+    publicToken?: string;
     onAnalysisQueued?: () => void;
   },
 ): ItemDetails {
@@ -73,6 +77,7 @@ export function detailsFromFile(
     resourceId: file.id,
     canAnalyze: extras?.canAnalyze,
     autoAnalyze: extras?.autoAnalyze,
+    publicToken: extras?.publicToken,
     onAnalysisQueued: extras?.onAnalysisQueued,
   };
 }
@@ -206,6 +211,13 @@ export function ItemDetailsList({
       </dl>
       {details.resourceType && details.resourceId ? (
         <ShareAccessSection resourceType={details.resourceType} resourceId={details.resourceId} />
+      ) : null}
+      {details.resourceType && details.resourceId ? (
+        <CommentsPanel
+          resourceType={details.resourceType}
+          resourceId={details.resourceId}
+          publicToken={details.publicToken}
+        />
       ) : null}
       {details.resourceType && details.resourceId ? (
         <AiAnalysisPanel

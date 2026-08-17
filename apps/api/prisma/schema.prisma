@@ -16,6 +16,7 @@ model User {
   updatedAt    DateTime   @updatedAt
   dataRooms    DataRoom[]
   shares       Share[]
+  comments     Comment[]
   aiSettings   UserAiSettings?
 }
 
@@ -48,6 +49,7 @@ model Folder {
   updatedAt  DateTime  @updatedAt
   files      File[]
   shares     Share[]
+  comments   Comment[]
 
   @@index([dataRoomId, parentId])
   @@index([path])
@@ -68,6 +70,7 @@ model File {
   updatedAt  DateTime  @updatedAt
   shares     Share[]
   versions   FileVersion[]
+  comments   Comment[]
 
   @@index([dataRoomId, folderId])
   @@index([folderId, name])
@@ -152,6 +155,25 @@ model Analysis {
   @@unique([resourceType, resourceId, kind])
   @@index([status, updatedAt])
   @@index([dataRoomId])
+}
+
+model Comment {
+  id           String       @id @default(uuid())
+  dataRoomId   String
+  resourceType ResourceType
+  resourceId   String
+  body         String       @db.Text
+  authorId     String
+  author       User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  createdAt    DateTime     @default(now())
+  fileId       String?
+  file         File?        @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  folderId     String?
+  folder       Folder?      @relation(fields: [folderId], references: [id], onDelete: Cascade)
+
+  @@index([resourceType, resourceId, createdAt])
+  @@index([dataRoomId])
+  @@index([authorId])
 }
 
 model Share {

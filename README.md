@@ -348,12 +348,12 @@ Done:
 - Testing (unit) - base
 - Testing (visual) - base
 - Multilanguage
+- Comments
 
 Postponed:
 - Tags
 - Relations
 - Status
-- Comments
 - Testing (functional) - covering
 - Testing (unit) - covering
 - Testing (visual) - covering
