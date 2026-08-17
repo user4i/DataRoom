@@ -2,6 +2,10 @@ export type Locale = "en" | "uk";
 
 export const LOCALE_STORAGE_KEY = "dataroom-locale";
 
+type MessageTree<T> = {
+  [K in keyof T]: T[K] extends string ? string : MessageTree<T[K]>;
+};
+
 export const en = {
   brand: "GS1 Data Room",
   language: { label: "Language", en: "English", uk: "Ukrainian" },
@@ -344,7 +348,7 @@ export const en = {
   },
 } as const;
 
-export const uk: typeof en = {
+export const uk: MessageTree<typeof en> = {
   brand: "GS1 Data Room",
   language: { label: "Мова", en: "English", uk: "Українська" },
   common: {
@@ -686,7 +690,7 @@ export const uk: typeof en = {
   },
 };
 
-export const dictionaries = { en, uk } as const;
+export const dictionaries: Record<Locale, MessageTree<typeof en>> = { en, uk };
 
 export function readStoredLocale(): Locale {
   if (typeof window === "undefined") return "en";

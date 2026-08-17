@@ -11,7 +11,7 @@ function interpolate(template: string, vars?: Vars) {
   return template.replace(/\{(\w+)\}/g, (_, key: string) => String(vars[key] ?? ""));
 }
 
-function lookup(dict: typeof en, path: string): string {
+function lookup(dict: (typeof dictionaries)[Locale], path: string): string {
   const parts = path.split(".");
   let node: unknown = dict;
   for (const part of parts) {
