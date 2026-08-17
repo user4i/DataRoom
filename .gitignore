@@ -5,9 +5,10 @@ node_modules/
 
 # Env / secrets
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 *.pem
+*.local
 
 # Builds
 dist/
@@ -16,6 +17,9 @@ build/
 out/
 coverage/
 .turbo/
+.swc/
+.nyc_output/
+*.tsbuildinfo
 
 # Logs
 logs/
@@ -36,9 +40,11 @@ apps/api/prisma/*.db-journal
 # OS / IDE
 .DS_Store
 Thumbs.db
+desktop.ini
 .idea/
 .vscode/
 *.swp
+*.swo
 
 # Test / cache
 .cache/
