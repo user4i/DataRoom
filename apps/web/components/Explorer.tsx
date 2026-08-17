@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Info, Plus, Search, Share2, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { startNavigation } from "@/lib/progress";
 import type { DeletionPreviewDto, FileDto, FolderDto, ListingDto, ResourceType } from "@dataroom/shared";
 import { Button } from "@/components/ui/button";
@@ -39,6 +40,7 @@ export function Explorer({
   publicToken?: string;
 }) {
   const router = useRouter();
+  const { t } = useI18n();
   const { dense, minimal } = useDensityFlags();
   const [listing, setListing] = useState<ListingDto | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -99,12 +101,12 @@ export function Explorer({
       }
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
-      if (status === 404) setError("Цей елемент більше недоступний");
-      else if (status === 403) setError("У вас немає доступу до цього елемента");
-      else if (status === 401) setError("Увійдіть у систему");
-      else setError(err instanceof Error ? err.message : "Не вдалося завантажити");
+      if (status === 404) setError(t("explorer.itemGone"));
+      else if (status === 403) setError(t("explorer.noAccess"));
+      else if (status === 401) setError(t("explorer.signIn"));
+      else setError(err instanceof Error ? err.message : t("explorer.loadFailed"));
     }
-  }, [roomId, folderId, publicToken, router, page, pageSize]);
+  }, [roomId, folderId, publicToken, router, page, pageSize, t]);
 
   useEffect(() => {
     const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
@@ -134,11 +136,11 @@ export function Explorer({
         );
         setResults(data);
       } catch (err) {
-        toast.error(err instanceof ApiError ? err.message : "Пошук не вдався");
+        toast.error(err instanceof ApiError ? err.message : t("explorer.searchFailed"));
       }
     }, 250);
     return () => clearTimeout(handle);
-  }, [query, isPublic, listing]);
+  }, [query, isPublic, listing, t]);
 
   const hrefFor = (item: { id: string }, index: number) => {
     if (!listing) return null;
@@ -209,10 +211,10 @@ export function Explorer({
           }),
         });
       }
-      toast.success("Файл переміщено");
+      toast.success(t("explorer.fileMoved"));
       await load();
     } catch (err) {
-      toast.error(err instanceof ApiError ? err.message : "Не вдалося перемістити файл");
+      toast.error(err instanceof ApiError ? err.message : t("explorer.moveFailed"));
     }
   };
 
@@ -220,10 +222,10 @@ export function Explorer({
     return (
       <EmptyState
         title={error}
-        description="Його могли видалити або доступ було скасовано. Спробуйте повернутися до своїх кімнат."
+        description={t("explorer.goneDescription")}
         action={
           <Button asChild>
-            <a href={publicToken ? "/" : "/rooms"}>Назад</a>
+            <a href={publicToken ? "/" : "/rooms"}>{t("common.back")}</a>
           </Button>
         }
       />
@@ -250,7 +252,7 @@ export function Explorer({
               variant="ghost"
               size="icon"
               className="size-8 shrink-0 text-muted-foreground"
-              aria-label="Деталі папки"
+              aria-label={t("explorer.folderDetails")}
               onClick={() => {
                 const folder = listing.folder;
                 if (!folder) return;
@@ -274,7 +276,7 @@ export function Explorer({
                 variant={searchOpen || query ? "secondary" : "ghost"}
                 size="icon"
                 className="size-8"
-                aria-label="Пошук"
+                aria-label={t("explorer.search")}
                 onClick={() => setSearchOpen((v) => !v)}
               >
                 <Search className="size-4" />
@@ -284,7 +286,7 @@ export function Explorer({
               variant={uploadOpen || uploadBusy ? "secondary" : "ghost"}
               size="icon"
               className="size-8"
-              aria-label="Завантажити PDF"
+              aria-label={t("explorer.uploadPdf")}
               onClick={() => setUploadOpen((v) => !v)}
             >
               <Upload className="size-4" />
@@ -293,7 +295,7 @@ export function Explorer({
               variant="ghost"
               size="icon"
               className="size-8"
-              aria-label="Поділитися"
+              aria-label={t("common.share")}
               onClick={() =>
                 setShare({
                   type: listing.folder ? "FOLDER" : "DATA_ROOM",
@@ -307,7 +309,7 @@ export function Explorer({
               variant="ghost"
               size="icon"
               className="size-8"
-              aria-label="Нова папка"
+              aria-label={t("explorer.newFolder")}
               onClick={() => setCreateOpen(true)}
             >
               <Plus className="size-4" />
@@ -324,10 +326,10 @@ export function Explorer({
                 })
               }
             >
-              <Share2 className="size-4" /> Поділитися
+              <Share2 className="size-4" /> {t("common.share")}
             </Button>
             <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4" /> Нова папка
+              <Plus className="size-4" /> {t("explorer.newFolder")}
             </Button>
           </div>
           )
@@ -338,13 +340,13 @@ export function Explorer({
                 variant={searchOpen || query ? "secondary" : "ghost"}
                 size="icon"
                 className="size-8"
-                aria-label="Пошук"
+                aria-label={t("explorer.search")}
                 onClick={() => setSearchOpen((v) => !v)}
               >
                 <Search className="size-4" />
               </Button>
             ) : null}
-            <p className="text-sm text-muted-foreground">Лише перегляд</p>
+            <p className="text-sm text-muted-foreground">{t("explorer.viewOnly")}</p>
           </div>
         )}
       </div>
@@ -352,7 +354,7 @@ export function Explorer({
       {!isPublic && (!dense || searchOpen || query.trim()) ? (
         <Input
           autoFocus={dense}
-          placeholder="Пошук файлів і папок за назвою"
+          placeholder={t("explorer.searchPlaceholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyDown={(e) => {
@@ -366,22 +368,22 @@ export function Explorer({
 
       {results && query.trim() ? (
         <div className="rounded-lg border bg-card p-3">
-          <p className="mb-2 text-sm font-medium">Результати пошуку</p>
+          <p className="mb-2 text-sm font-medium">{t("explorer.searchResults")}</p>
           {results.folders.length === 0 && results.files.length === 0 ? (
-            <p className="text-sm text-muted-foreground">Нічого не знайдено</p>
+            <p className="text-sm text-muted-foreground">{t("explorer.nothingFound")}</p>
           ) : (
             <ul className="space-y-1 text-sm">
               {results.folders.map((f) => (
                 <li key={f.id}>
                   <button className="text-left hover:underline" onClick={() => openFolder(f as FolderDto)}>
-                    Папка: {f.name}
+                    {t("common.folder")}: {f.name}
                   </button>
                 </li>
               ))}
               {results.files.map((f) => (
                 <li key={f.id}>
                   <button className="text-left hover:underline" onClick={() => openFile({ ...f, dataRoomId: listing.dataRoom.id, folderId: null, size: "0", mimeType: "application/pdf", createdAt: "", updatedAt: "" })}>
-                    Файл: {f.name}
+                    {t("common.file")}: {f.name}
                   </button>
                 </li>
               ))}
@@ -402,8 +404,8 @@ export function Explorer({
 
       {listing.total === 0 ? (
         <EmptyState
-          title={canEdit ? "Ця папка порожня" : "Поки що нічого немає"}
-          description={canEdit ? "Створіть папку або перетягніть PDF вище." : "Власник ще не додав сюди файлів."}
+          title={canEdit ? t("explorer.emptyTitle") : t("explorer.emptyTitleViewer")}
+          description={canEdit ? t("explorer.emptyDescription") : t("explorer.emptyDescriptionViewer")}
         />
       ) : (
         <div
@@ -429,7 +431,7 @@ export function Explorer({
                 setDeleteFolderId(folder.id);
                 setDeletePreview(preview);
               } catch (err) {
-                toast.error(err instanceof ApiError ? err.message : "Не вдалося підготувати видалення");
+                toast.error(err instanceof ApiError ? err.message : t("explorer.deletePrepFailed"));
               }
             }}
           />
@@ -437,7 +439,7 @@ export function Explorer({
           {listing.files.length > 0 ? (
             <div className={`min-w-0 ${minimal ? "space-y-0" : "space-y-1"}`}>
               {minimal ? null : (
-              <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Файли</p>
+              <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("explorer.files")}</p>
               )}
               <ul className={`divide-y bg-card ${minimal ? "border-y" : "rounded-lg border"}`}>
                 {listing.files.map((file) => (
@@ -451,13 +453,13 @@ export function Explorer({
                     onMove={setMoveFile}
                     onShare={(f) => setShare({ type: "FILE", id: f.id })}
                     onDelete={async (f) => {
-                      if (!confirm(`Видалити ${f.name}? Цю дію не можна скасувати.`)) return;
+                      if (!confirm(t("explorer.deleteFileConfirm", { name: f.name }))) return;
                       try {
                         await api(`/files/${f.id}`, { method: "DELETE" });
-                        toast.success("Файл видалено");
+                        toast.success(t("explorer.fileDeleted"));
                         await load();
                       } catch (err) {
-                        toast.error(err instanceof ApiError ? err.message : "Не вдалося видалити файл");
+                        toast.error(err instanceof ApiError ? err.message : t("explorer.deleteFileFailed"));
                       }
                     }}
                   />
@@ -484,13 +486,13 @@ export function Explorer({
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Нова папка</DialogTitle>
+            <DialogTitle>{t("explorer.newFolder")}</DialogTitle>
           </DialogHeader>
-          <Label htmlFor="folder-name">Назва</Label>
+          <Label htmlFor="folder-name">{t("common.name")}</Label>
           <Input id="folder-name" value={folderName} onChange={(e) => setFolderName(e.target.value)} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Скасувати
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={async () => {
@@ -501,14 +503,14 @@ export function Explorer({
                   });
                   setFolderName("");
                   setCreateOpen(false);
-                  toast.success("Папку створено");
+                  toast.success(t("explorer.folderCreated"));
                   await load();
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Не вдалося створити папку");
+                  toast.error(err instanceof ApiError ? err.message : t("explorer.createFolderFailed"));
                 }
               }}
             >
-              Створити
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -517,12 +519,12 @@ export function Explorer({
       <Dialog open={Boolean(renameTarget)} onOpenChange={(v) => !v && setRenameTarget(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Перейменувати</DialogTitle>
+            <DialogTitle>{t("common.rename")}</DialogTitle>
           </DialogHeader>
           <Input value={renameTarget?.name ?? ""} onChange={(e) => setRenameTarget((t) => (t ? { ...t, name: e.target.value } : t))} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRenameTarget(null)}>
-              Скасувати
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={async () => {
@@ -534,14 +536,14 @@ export function Explorer({
                     await api(`/files/${renameTarget.id}`, { method: "PATCH", body: JSON.stringify({ name: renameTarget.name }) });
                   }
                   setRenameTarget(null);
-                  toast.success("Перейменовано");
+                  toast.success(t("explorer.renamed"));
                   await load();
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Оберіть іншу назву");
+                  toast.error(err instanceof ApiError ? err.message : t("explorer.pickAnotherName"));
                 }
               }}
             >
-              Зберегти
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -579,7 +581,7 @@ export function Explorer({
                   ...(options?.confirmViewers ? { confirmViewers: true } : {}),
                 }),
               });
-              toast.success("Файл переміщено");
+              toast.success(t("explorer.fileMoved"));
               setMoveFile(null);
               await load();
               return;
@@ -617,12 +619,12 @@ export function Explorer({
             const confirmViewers = Boolean(viewers && viewers.publicLinkCount + viewers.peopleCount > 0);
             const query = confirmViewers ? "?confirmViewers=true" : "";
             await api(`/folders/${deleteFolderId}${query}`, { method: "DELETE" });
-            toast.success("Папку видалено");
+            toast.success(t("explorer.folderDeleted"));
             setDeleteFolderId(null);
             setDeletePreview(null);
             await load();
           } catch (err) {
-            toast.error(err instanceof ApiError ? err.message : "Не вдалося видалити папку");
+            toast.error(err instanceof ApiError ? err.message : t("explorer.deleteFolderFailed"));
           }
         }}
       />

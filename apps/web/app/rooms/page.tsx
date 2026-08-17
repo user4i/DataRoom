@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { api, ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { startNavigation } from "@/lib/progress";
 import type { DataRoomDto } from "@dataroom/shared";
 
@@ -26,6 +27,7 @@ export default function RoomsPage() {
 
 function RoomsInner() {
   const router = useRouter();
+  const { t } = useI18n();
   const [owned, setOwned] = useState<DataRoomDto[] | null>(null);
   const [shared, setShared] = useState<DataRoomDto[]>([]);
   const [open, setOpen] = useState(false);
@@ -39,24 +41,24 @@ function RoomsInner() {
   };
 
   useEffect(() => {
-    load().catch((err) => toast.error(err instanceof ApiError ? err.message : "Не вдалося завантажити кімнати"));
-  }, []);
+    load().catch((err) => toast.error(err instanceof ApiError ? err.message : t("rooms.loadFailed")));
+  }, [t]);
 
   return (
     <div className="min-h-screen">
       <AppHeader />
       <main className="mx-auto max-w-6xl space-y-8 px-4 py-8">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Кімнати даних</h1>
-          <Button onClick={() => setOpen(true)}>Нова кімната</Button>
+          <h1 className="text-2xl font-semibold">{t("rooms.title")}</h1>
+          <Button onClick={() => setOpen(true)}>{t("rooms.new")}</Button>
         </div>
         {!owned ? (
           <Skeleton className="h-40 w-full" />
         ) : owned.length === 0 ? (
           <EmptyState
-            title="Ще немає кімнат"
-            description="Створіть кімнату, щоб додавати папки та PDF."
-            action={<Button onClick={() => setOpen(true)}>Створити першу кімнату</Button>}
+            title={t("rooms.emptyTitle")}
+            description={t("rooms.emptyDescription")}
+            action={<Button onClick={() => setOpen(true)}>{t("rooms.createFirst")}</Button>}
           />
         ) : (
           <RoomGrid
@@ -68,21 +70,21 @@ function RoomsInner() {
             }}
             onRename={setRename}
             onDelete={async (room) => {
-              if (!confirm(`Видалити кімнату «${room.name}»? Усі папки і файли всередині буде видалено.`)) return;
+              if (!confirm(t("rooms.deleteConfirm", { name: room.name }))) return;
               try {
                 await api(`/data-rooms/${room.id}`, { method: "DELETE" });
-                toast.success("Кімнату видалено");
+                toast.success(t("rooms.deleted"));
                 await load();
               } catch (err) {
-                toast.error(err instanceof ApiError ? err.message : "Не вдалося видалити");
+                toast.error(err instanceof ApiError ? err.message : t("rooms.deleteFailed"));
               }
             }}
           />
         )}
         <section>
-          <h2 className="mb-3 text-lg font-medium">Поділилися зі мною</h2>
+          <h2 className="mb-3 text-lg font-medium">{t("rooms.sharedWithMe")}</h2>
           {shared.length === 0 ? (
-            <p className="text-sm text-muted-foreground">З цим обліковим записом ще нічого не поділилися.</p>
+            <p className="text-sm text-muted-foreground">{t("rooms.sharedEmpty")}</p>
           ) : (
             <RoomGrid
               rooms={shared}
@@ -99,13 +101,13 @@ function RoomsInner() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Нова кімната</DialogTitle>
+            <DialogTitle>{t("rooms.new")}</DialogTitle>
           </DialogHeader>
-          <Label htmlFor="room-name">Назва</Label>
+          <Label htmlFor="room-name">{t("common.name")}</Label>
           <Input id="room-name" value={name} onChange={(e) => setName(e.target.value)} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)}>
-              Скасувати
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={async () => {
@@ -116,11 +118,11 @@ function RoomsInner() {
                   startNavigation();
                   router.push(`/rooms/${room.id}`);
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Не вдалося створити кімнату");
+                  toast.error(err instanceof ApiError ? err.message : t("rooms.createFailed"));
                 }
               }}
             >
-              Створити
+              {t("common.create")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -129,12 +131,12 @@ function RoomsInner() {
       <Dialog open={Boolean(rename)} onOpenChange={(v) => !v && setRename(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Перейменувати кімнату</DialogTitle>
+            <DialogTitle>{t("rooms.renameTitle")}</DialogTitle>
           </DialogHeader>
           <Input value={rename?.name ?? ""} onChange={(e) => setRename((r) => (r ? { ...r, name: e.target.value } : r))} />
           <DialogFooter>
             <Button variant="outline" onClick={() => setRename(null)}>
-              Скасувати
+              {t("common.cancel")}
             </Button>
             <Button
               onClick={async () => {
@@ -144,11 +146,11 @@ function RoomsInner() {
                   setRename(null);
                   await load();
                 } catch (err) {
-                  toast.error(err instanceof ApiError ? err.message : "Не вдалося перейменувати");
+                  toast.error(err instanceof ApiError ? err.message : t("rooms.renameFailed"));
                 }
               }}
             >
-              Зберегти
+              {t("common.save")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -170,26 +172,31 @@ function RoomGrid({
   onRename?: (room: DataRoomDto) => void;
   onDelete?: (room: DataRoomDto) => void;
 }) {
+  const { t } = useI18n();
   return (
     <ul className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {rooms.map((room) => (
         <li key={room.id} className="rounded-xl border bg-card p-4">
           <button type="button" className="w-full text-left" onClick={() => onOpen(room.id)}>
             <p className="font-medium">{room.name}</p>
-            <p className="mt-1 text-xs text-muted-foreground">{room.access === "OWNER" ? "Ваша кімната" : `Поділився ${room.owner?.name ?? "власник"}`}</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {room.access === "OWNER"
+                ? t("rooms.yours")
+                : t("rooms.sharedBy", { name: room.owner?.name ?? t("rooms.sharedByOwner") })}
+            </p>
           </button>
           {canEdit ? (
             <div className="mt-3 flex gap-2">
               <Button size="sm" variant="outline" onClick={() => onRename?.(room)}>
-                Перейменувати
+                {t("common.rename")}
               </Button>
               <Button size="sm" variant="outline" onClick={() => onDelete?.(room)}>
-                Видалити
+                {t("common.delete")}
               </Button>
             </div>
           ) : (
             <Button asChild size="sm" variant="outline" className="mt-3">
-              <Link href={`/rooms/${room.id}`}>Відкрити</Link>
+              <Link href={`/rooms/${room.id}`}>{t("common.open")}</Link>
             </Button>
           )}
         </li>

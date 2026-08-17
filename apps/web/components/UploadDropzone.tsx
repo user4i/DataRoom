@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { api, API_URL, ApiError } from "@/lib/api";
+import { useI18n } from "@/lib/i18n";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import type { FileDto } from "@dataroom/shared";
@@ -37,6 +38,7 @@ export function UploadDropzone({
   compact?: boolean;
   onBusyChange?: (busy: boolean) => void;
 }) {
+  const { t } = useI18n();
   const [items, setItems] = useState<Item[]>([]);
   const [drag, setDrag] = useState(false);
   const [conflict, setConflict] = useState<ConflictState | null>(null);
@@ -68,7 +70,7 @@ export function UploadDropzone({
         setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, ...patch } : it)));
       try {
         if (item.file.type && item.file.type !== "application/pdf" && !item.file.name.toLowerCase().endsWith(".pdf")) {
-          throw new Error("Дозволені лише файли PDF");
+          throw new Error(t("upload.pdfOnly"));
         }
         update({ status: "uploading", progress: 5 });
         const presign = await api<{ storageKey: string; uploadUrl: string }>("/files/presign", {
@@ -81,7 +83,10 @@ export function UploadDropzone({
             size: item.file.size,
           }),
         });
-        await putWithProgress(presign.uploadUrl, item.file, (pct) => update({ progress: Math.max(10, Math.min(90, pct)) }));
+        await putWithProgress(presign.uploadUrl, item.file, (pct) => update({ progress: Math.max(10, Math.min(90, pct)) }), {
+          saveFailed: t("upload.saveFailed"),
+          connectFailed: t("upload.connectFailed", { url: API_URL }),
+        });
         const created = await api<FileDto>("/files", {
           method: "POST",
           body: JSON.stringify({
@@ -97,12 +102,12 @@ export function UploadDropzone({
         update({ status: "done", progress: 100 });
         onUploaded(created);
       } catch (error) {
-        const message = error instanceof ApiError || error instanceof Error ? error.message : "Не вдалося завантажити";
+        const message = error instanceof ApiError || error instanceof Error ? error.message : t("upload.failed");
         update({ status: "error", error: message });
         toast.error(message);
       }
     },
-    [dataRoomId, folderId, onUploaded],
+    [dataRoomId, folderId, onUploaded, t],
   );
 
   const processItem = useCallback(
@@ -155,12 +160,12 @@ export function UploadDropzone({
         }
         await uploadOne(item, item.file.name);
       } catch (error) {
-        const message = error instanceof ApiError || error instanceof Error ? error.message : "Не вдалося завантажити";
+        const message = error instanceof ApiError || error instanceof Error ? error.message : t("upload.failed");
         update({ status: "error", error: message });
         toast.error(message);
       }
     },
-    [askConflict, dataRoomId, folderId, uploadOne],
+    [askConflict, dataRoomId, folderId, uploadOne, t],
   );
 
   const queueFiles = (fileList: FileList | File[]) => {
@@ -196,8 +201,8 @@ export function UploadDropzone({
           compact ? "px-4 py-4" : "px-6 py-8"
         } ${drag ? "border-primary bg-accent" : "bg-card hover:bg-accent/40"}`}
       >
-        <p className="font-medium">Перетягніть PDF сюди або натисніть, щоб завантажити</p>
-        <p className="mt-1 text-sm text-muted-foreground">Можна кілька файлів · лише PDF · до 50 МБ кожен</p>
+        <p className="font-medium">{t("upload.drop")}</p>
+        <p className="mt-1 text-sm text-muted-foreground">{t("upload.hint")}</p>
         <input
           type="file"
           accept="application/pdf,.pdf"
@@ -217,13 +222,13 @@ export function UploadDropzone({
                 <span className="truncate font-medium">{item.file.name}</span>
                 <span className="text-muted-foreground">
                   {item.status === "done"
-                    ? "Завантажено"
+                    ? t("upload.done")
                     : item.status === "skipped"
-                      ? "Пропущено"
+                      ? t("upload.skipped")
                       : item.status === "error"
                         ? item.error
                         : conflict?.incomingName === item.file.name
-                          ? "Очікування…"
+                          ? t("upload.waiting")
                           : `${item.progress}%`}
                 </span>
               </div>
@@ -236,7 +241,7 @@ export function UploadDropzone({
       ) : null}
       {items.some((i) => i.status === "error" || i.status === "done" || i.status === "skipped") ? (
         <Button variant="ghost" size="sm" onClick={() => setItems([])}>
-          Очистити список
+          {t("upload.clear")}
         </Button>
       ) : null}
       <UploadConflictDialog
@@ -247,7 +252,12 @@ export function UploadDropzone({
   );
 }
 
-function putWithProgress(url: string, file: File, onProgress: (pct: number) => void) {
+function putWithProgress(
+  url: string,
+  file: File,
+  onProgress: (pct: number) => void,
+  errors: { saveFailed: string; connectFailed: string },
+) {
   return new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open("PUT", url);
@@ -257,9 +267,9 @@ function putWithProgress(url: string, file: File, onProgress: (pct: number) => v
     };
     xhr.onload = () => {
       if (xhr.status >= 200 && xhr.status < 300) resolve();
-      else reject(new Error("Не вдалося зберегти файл"));
+      else reject(new Error(errors.saveFailed));
     };
-    xhr.onerror = () => reject(new Error(`Не вдалося з’єднатися зі сховищем (${API_URL})`));
+    xhr.onerror = () => reject(new Error(errors.connectFailed));
     xhr.send(file);
   });
 }

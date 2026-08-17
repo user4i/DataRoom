@@ -4,6 +4,7 @@ import { FileText } from "lucide-react";
 import type { FileDto } from "@dataroom/shared";
 import { useDensityFlags } from "@/lib/density";
 import { formatBytes, formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,6 +33,7 @@ export function FileRow({
   onShare: (file: FileDto) => void;
   onDelete: (file: FileDto) => void;
 }) {
+  const { t, locale } = useI18n();
   const { dense, minimal } = useDensityFlags();
   return (
     <li
@@ -44,7 +46,7 @@ export function FileRow({
           {minimal ? null : (
             <p className="text-xs text-muted-foreground">
               {formatBytes(file.size)}
-              {!dense && file.createdAt ? ` · ${formatDateTime(file.createdAt)}` : ""}
+              {!dense && file.createdAt ? ` · ${formatDateTime(file.createdAt, locale)}` : ""}
             </p>
           )}
         </div>
@@ -57,16 +59,16 @@ export function FileRow({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => onOpen(file)}>Переглянути</DropdownMenuItem>
-          <DropdownMenuItem onClick={() => onDetails(file)}>Деталі</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onOpen(file)}>{t("fileMenu.view")}</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => onDetails(file)}>{t("common.details")}</DropdownMenuItem>
           {canEdit ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => onRename(file)}>Перейменувати</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onMove(file)}>Перемістити</DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onShare(file)}>Поділитися</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onRename(file)}>{t("common.rename")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onMove(file)}>{t("fileMenu.move")}</DropdownMenuItem>
+              <DropdownMenuItem onClick={() => onShare(file)}>{t("common.share")}</DropdownMenuItem>
               <DropdownMenuItem variant="destructive" onClick={() => onDelete(file)}>
-                Видалити
+                {t("common.delete")}
               </DropdownMenuItem>
             </>
           ) : null}

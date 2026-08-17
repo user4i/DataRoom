@@ -12,6 +12,7 @@ import { DataRoomsService } from '../data-rooms/data-rooms.service';
 import { FoldersService } from '../folders/folders.service';
 import { FilesService } from '../files/files.service';
 import { CreateShareDto } from './dto/share.dto';
+import { t } from '../i18n/t';
 
 @Injectable()
 export class SharesService {
@@ -67,7 +68,7 @@ export class SharesService {
   async create(userId: string, dto: CreateShareDto) {
     const resource = await this.resolveResource(dto.resourceType, dto.resourceId);
     if (resource.ownerId !== userId) {
-      throw new ForbiddenException('Лише власник може надавати доступ');
+      throw new ForbiddenException(t('ownerOnlyShare'));
     }
 
     if (dto.kind === 'PUBLIC_LINK') {
@@ -97,11 +98,11 @@ export class SharesService {
     }
 
     const email = dto.email?.trim().toLowerCase();
-    if (!email) throw new BadRequestException('Щоб поділитися з людиною, потрібен email');
+    if (!email) throw new BadRequestException(t('emailRequiredToShare'));
 
     const owner = await this.prisma.user.findUnique({ where: { id: userId } });
     if (owner && owner.email === email) {
-      throw new BadRequestException('Ви вже власник цього елемента');
+      throw new BadRequestException(t('alreadyOwner'));
     }
 
     const target = await this.prisma.user.findUnique({ where: { email } });
@@ -136,7 +137,7 @@ export class SharesService {
   async list(userId: string, resourceType: ResourceType, resourceId: string) {
     const resource = await this.resolveResource(resourceType, resourceId);
     if (resource.ownerId !== userId) {
-      throw new ForbiddenException('Лише власник може переглядати доступ');
+      throw new ForbiddenException(t('ownerOnlyListShares'));
     }
     const shares = await this.prisma.share.findMany({
       where: { resourceType, resourceId, revokedAt: null },
@@ -148,10 +149,10 @@ export class SharesService {
 
   async revoke(userId: string, id: string) {
     const share = await this.prisma.share.findUnique({ where: { id } });
-    if (!share) throw new NotFoundException('Спільний доступ не знайдено');
+    if (!share) throw new NotFoundException(t('shareNotFound'));
     const resource = await this.resolveResource(share.resourceType, share.resourceId);
     if (resource.ownerId !== userId) {
-      throw new ForbiddenException('Лише власник може скасувати доступ');
+      throw new ForbiddenException(t('ownerOnlyRevoke'));
     }
     await this.prisma.share.update({ where: { id }, data: { revokedAt: new Date() } });
     return { revoked: true };
@@ -175,7 +176,7 @@ export class SharesService {
     const share = await this.prisma.share.findFirst({
       where: { token, kind: 'PUBLIC_LINK', revokedAt: null },
     });
-    if (!share) throw new NotFoundException('Це посилання більше недоступне');
+    if (!share) throw new NotFoundException(t('linkGone'));
     return share;
   }
 

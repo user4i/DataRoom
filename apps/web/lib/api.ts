@@ -1,5 +1,6 @@
 import { doneProgress, startProgress } from "./progress";
 import { applyDevDelay } from "./dev-delay";
+import { dictionaries, readStoredLocale } from "./messages";
 
 export class ApiError extends Error {
   status: number;
@@ -46,12 +47,14 @@ async function apiRequest<T>(
     headers.set("Content-Type", "application/json");
   }
   if (token) headers.set("Authorization", `Bearer ${token}`);
+  const locale = readStoredLocale();
+  headers.set("Accept-Language", locale);
 
   let res: Response;
   try {
     res = await fetch(`${API_URL}${path}`, { ...options, headers });
   } catch {
-    throw new ApiError(0, "Помилка мережі. Перевірте з’єднання.");
+    throw new ApiError(0, dictionaries[locale].errors.network);
   }
 
   if (res.status === 204) return undefined as T;
@@ -64,15 +67,16 @@ async function apiRequest<T>(
         window.location.href = "/login";
       }
     }
-    throw new ApiError(res.status, statusMessage(res.status, message));
+    throw new ApiError(res.status, statusMessage(locale, res.status, message));
   }
   return body as T;
 }
 
-function statusMessage(status: number, fallback: string) {
-  if (status === 401) return fallback || "Увійдіть у систему";
-  if (status === 403) return fallback || "У вас немає доступу до цього елемента";
-  if (status === 404) return fallback || "Цей елемент більше недоступний";
-  if (status === 409) return fallback || "Елемент із такою назвою вже існує тут";
+function statusMessage(locale: "en" | "uk", status: number, fallback: string) {
+  const errors = dictionaries[locale].errors;
+  if (status === 401) return fallback || errors.signIn;
+  if (status === 403) return fallback || errors.forbidden;
+  if (status === 404) return fallback || errors.notFound;
+  if (status === 409) return fallback || errors.conflict;
   return fallback;
 }

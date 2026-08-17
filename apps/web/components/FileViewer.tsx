@@ -11,6 +11,7 @@ import { api, ApiError } from "@/lib/api";
 import type { FileDto } from "@dataroom/shared";
 import { detailsFromFile, ItemDetailsList } from "@/components/item-details";
 import { formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function FileViewer({
   roomId,
@@ -21,6 +22,7 @@ export function FileViewer({
   fileId: string;
   publicToken?: string;
 }) {
+  const { t, locale } = useI18n();
   const [data, setData] = useState<{
     file: FileDto;
     url: string | null;
@@ -44,14 +46,14 @@ export function FileViewer({
       .catch((err) => {
         const message =
           err instanceof ApiError && (err.status === 404 || err.status === 403)
-            ? "Цей елемент більше недоступний"
+            ? t("explorer.itemGone")
             : err instanceof Error
               ? err.message
-              : "Не вдалося відкрити файл";
+              : t("viewer.openFailed");
         setError(message);
         toast.error(message);
       });
-  }, [fileId, publicToken]);
+  }, [fileId, publicToken, t]);
 
   const parentFolderId = data?.file.folderId;
   const backHref = publicToken
@@ -62,10 +64,10 @@ export function FileViewer({
       ? `/rooms/${roomId}/f/${parentFolderId}`
       : `/rooms/${roomId}`;
   const backLabel = publicToken
-    ? "Назад до спільної папки"
+    ? t("viewer.backShared")
     : parentFolderId
-      ? "Назад до папки"
-      : "Назад до кімнати";
+      ? t("viewer.backFolder")
+      : t("viewer.backRoom");
 
   return (
     <div className="min-h-screen">
@@ -88,13 +90,13 @@ export function FileViewer({
             ) : (
               <div className="flex h-[80vh] w-full items-center">
                 <EmptyState
-                  title="Файл відсутній у сховищі"
-                  description="Запис про файл є, але сам PDF не знайдено. Можливо, завантаження не завершилось або файл видалили зі сховища."
+                  title={t("viewer.missingTitle")}
+                  description={t("viewer.missingDescription")}
                 />
               </div>
             )}
             <aside className="rounded-lg border bg-card p-4">
-              <h2 className="mb-3 text-sm font-medium">Деталі</h2>
+              <h2 className="mb-3 text-sm font-medium">{t("viewer.details")}</h2>
               <ItemDetailsList
                 details={detailsFromFile(data.file, {
                   location: [data.dataRoomName, data.folderName].filter(Boolean).join(" / "),
@@ -105,12 +107,12 @@ export function FileViewer({
         ) : null}
         {versions.length > 0 ? (
           <section className="mt-6">
-            <h2 className="text-sm font-medium">Попередні версії</h2>
+            <h2 className="text-sm font-medium">{t("viewer.versions")}</h2>
             <ul className="mt-2 divide-y rounded-lg border bg-card text-sm">
               {versions.map((v) => (
                 <li key={v.id} className="flex items-center justify-between px-3 py-2">
                   <span className="text-muted-foreground">
-                    Версія {v.version} · {formatDateTime(v.createdAt)}
+                    {t("viewer.version", { n: v.version })} · {formatDateTime(v.createdAt, locale)}
                   </span>
                   <Button
                     variant="outline"
@@ -120,11 +122,11 @@ export function FileViewer({
                         const res = await api<{ url: string }>(`/files/${fileId}/versions/${v.id}`);
                         setData((d) => (d ? { ...d, url: res.url } : d));
                       } catch (err) {
-                        toast.error(err instanceof Error ? err.message : "Не вдалося відкрити версію");
+                        toast.error(err instanceof Error ? err.message : t("viewer.versionFailed"));
                       }
                     }}
                   >
-                    Переглянути
+                    {t("viewer.view")}
                   </Button>
                 </li>
               ))}

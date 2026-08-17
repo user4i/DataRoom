@@ -2,6 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 export const PAGE_SIZES = [10, 20, 30, 50, 100] as const;
 export const DEFAULT_PAGE_SIZE = 20;
@@ -32,6 +33,7 @@ export function ListingPager({
   onPageChange: (page: number) => void;
   onPageSizeChange: (pageSize: number) => void;
 }) {
+  const { t } = useI18n();
   if (total < 10) return null;
 
   const lastPage = Math.max(1, Math.ceil(total / pageSize));
@@ -41,7 +43,7 @@ export function ListingPager({
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 pt-4">
       <label className="flex items-center gap-2 text-sm text-muted-foreground">
-        На сторінці
+        {t("pager.perPage")}
         <select
           className="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           value={pageSize}
@@ -55,9 +57,9 @@ export function ListingPager({
         </select>
       </label>
       {showNumbers ? (
-        <nav className="flex items-center gap-1" aria-label="Сторінки">
+        <nav className="flex items-center gap-1" aria-label={t("pager.pages")}>
           <Button variant="outline" size="sm" disabled={page <= 1} onClick={() => onPageChange(page - 1)}>
-            Назад
+            {t("pager.prev")}
           </Button>
           {pages[0] > 1 ? (
             <>
@@ -75,7 +77,7 @@ export function ListingPager({
             </>
           ) : null}
           <Button variant="outline" size="sm" disabled={page >= lastPage} onClick={() => onPageChange(page + 1)}>
-            Далі
+            {t("pager.next")}
           </Button>
         </nav>
       ) : null}

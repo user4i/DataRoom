@@ -7,6 +7,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { t } from '../i18n/t';
 
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
@@ -33,7 +34,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.logger.error(exception);
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'Внутрішня помилка сервера',
+      message: t('internalError'),
       error: 'Internal Server Error',
     });
   }

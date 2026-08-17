@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { rethrowUnique } from '../common/prisma-errors';
 import { ancestorIdsFromPath, serializeFile, serializeFolder, serializeRoom } from '../common/serialize';
 import { listFolderPage } from '../common/listing-page';
+import { t } from '../i18n/t';
 import { CreateFolderDto, UpdateFolderDto } from './dto/folder.dto';
 
 @Injectable()
@@ -19,7 +20,7 @@ export class FoldersService {
     if (parentId) {
       const parent = await this.access.getFolderOrThrow(parentId);
       if (parent.dataRoomId !== dataRoomId) {
-        throw new NotFoundException('Батьківську папку не знайдено');
+        throw new NotFoundException(t('parentFolderNotFound'));
       }
     }
 
@@ -47,7 +48,7 @@ export class FoldersService {
       });
       return serializeFolder(folder);
     } catch (error) {
-      rethrowUnique(error, 'Папка з такою назвою вже існує тут');
+      rethrowUnique(error, t('folderNameTaken'));
     }
   }
 
@@ -75,7 +76,7 @@ export class FoldersService {
       { id: room.id, name: room.name },
       ...ancestorIdsFromPath(folder.path).map((fid) => ({
         id: fid,
-        name: byId.get(fid)?.name ?? 'Папка',
+        name: byId.get(fid)?.name ?? t('folderFallback'),
       })),
     ];
 
@@ -102,7 +103,7 @@ export class FoldersService {
       });
       return serializeFolder(updated);
     } catch (error) {
-      rethrowUnique(error, 'Папка з такою назвою вже існує тут');
+      rethrowUnique(error, t('folderNameTaken'));
     }
   }
 
@@ -158,7 +159,7 @@ export class FoldersService {
     );
     if (viewers.publicLinkCount + viewers.peopleCount > 0 && !confirmViewers) {
       throw new ConflictException(
-        'Цю папку зараз можуть переглядати інші. Підтвердьте відкликання доступу з правами власника, щоб видалити.',
+        t('folderViewersConfirm'),
       );
     }
 

@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { HealthController } from './health.controller';
 import { PrismaModule } from './prisma/prisma.module';
@@ -10,6 +10,7 @@ import { FoldersModule } from './folders/folders.module';
 import { FilesModule } from './files/files.module';
 import { SharesModule } from './shares/shares.module';
 import { DevModule } from './dev/dev.module';
+import { localeMiddleware } from './i18n/locale.middleware';
 
 @Module({
   imports: [
@@ -30,4 +31,8 @@ import { DevModule } from './dev/dev.module';
   ],
   controllers: [HealthController],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(localeMiddleware).forRoutes('*');
+  }
+}

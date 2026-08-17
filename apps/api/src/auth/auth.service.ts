@@ -4,6 +4,7 @@ import * as bcrypt from 'bcrypt';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoginDto, RegisterDto } from './dto/auth.dto';
 import { serializeUser } from '../common/serialize';
+import { t } from '../i18n/t';
 
 @Injectable()
 export class AuthService {
@@ -16,7 +17,7 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) {
-      throw new ConflictException('Цей email уже зареєстровано');
+      throw new ConflictException(t('emailTaken'));
     }
 
     const passwordHash = await bcrypt.hash(dto.password, 10);
@@ -36,11 +37,11 @@ export class AuthService {
     const email = dto.email.trim().toLowerCase();
     const user = await this.prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw new UnauthorizedException('Невірний email або пароль');
+      throw new UnauthorizedException(t('invalidCredentials'));
     }
     const ok = await bcrypt.compare(dto.password, user.passwordHash);
     if (!ok) {
-      throw new UnauthorizedException('Невірний email або пароль');
+      throw new UnauthorizedException(t('invalidCredentials'));
     }
     return this.issue(user);
   }
@@ -50,7 +51,7 @@ export class AuthService {
       where: { id: userId },
       select: { id: true, email: true, name: true },
     });
-    if (!user) throw new UnauthorizedException('Потрібна автентифікація');
+    if (!user) throw new UnauthorizedException(t('authRequired'));
     return serializeUser(user);
   }
 

@@ -4,7 +4,7 @@ import { ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const Breadcrumb = React.forwardRef<HTMLElement, React.ComponentPropsWithoutRef<"nav">>(
-  ({ className, ...props }, ref) => <nav ref={ref} aria-label="навігація" className={className} {...props} />,
+  ({ className, ...props }, ref) => <nav ref={ref} aria-label="breadcrumb" className={className} {...props} />,
 );
 Breadcrumb.displayName = "Breadcrumb";
 

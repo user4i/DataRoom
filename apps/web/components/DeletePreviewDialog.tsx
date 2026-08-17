@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { DeletionPreviewDto } from "@dataroom/shared";
-import { ukPlural } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -16,27 +16,9 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 
-const CONFIRM_WORD = "ВИДАЛИТИ";
-
 function hasViewers(preview: DeletionPreviewDto | null) {
   if (!preview?.viewers) return false;
   return preview.viewers.publicLinkCount + preview.viewers.peopleCount > 0;
-}
-
-function viewerSummary(preview: DeletionPreviewDto) {
-  const parts: string[] = [];
-  if (preview.viewers.publicLinkCount > 0) {
-    parts.push(
-      ukPlural(preview.viewers.publicLinkCount, "публічне посилання", "публічні посилання", "публічних посилань"),
-    );
-  }
-  if (preview.viewers.peopleCount > 0) {
-    const emails = preview.viewers.people.length
-      ? ` (${preview.viewers.people.join(", ")}${preview.viewers.peopleCount > preview.viewers.people.length ? "…" : ""})`
-      : "";
-    parts.push(`${ukPlural(preview.viewers.peopleCount, "людина", "людини", "людей")}${emails}`);
-  }
-  return parts.join(" і ");
 }
 
 export function DeletePreviewDialog({
@@ -50,11 +32,28 @@ export function DeletePreviewDialog({
   preview: DeletionPreviewDto | null;
   onConfirm: () => void;
 }) {
+  const { t, p } = useI18n();
+  const CONFIRM_WORD = t("deleteFolder.confirmWord");
   const [ownerConfirm, setOwnerConfirm] = useState(false);
   const [typed, setTyped] = useState("");
   const viewers = hasViewers(preview);
   const wordMatches = typed.trim().toUpperCase() === CONFIRM_WORD;
   const canDelete = Boolean(preview) && wordMatches && (!viewers || ownerConfirm);
+  const [typeLabelBefore, typeLabelAfter] = t("deleteFolder.typeLabel").split("{word}");
+
+  const viewerSummary = (item: DeletionPreviewDto) => {
+    const parts: string[] = [];
+    if (item.viewers.publicLinkCount > 0) {
+      parts.push(p("publicLink", item.viewers.publicLinkCount));
+    }
+    if (item.viewers.peopleCount > 0) {
+      const emails = item.viewers.people.length
+        ? ` (${item.viewers.people.join(", ")}${item.viewers.peopleCount > item.viewers.people.length ? "…" : ""})`
+        : "";
+      parts.push(`${p("person", item.viewers.peopleCount)}${emails}`);
+    }
+    return parts.join(t("and"));
+  };
 
   useEffect(() => {
     if (!open) return;
@@ -66,15 +65,15 @@ export function DeletePreviewDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Видалити цю папку?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteFolder.title")}</AlertDialogTitle>
           <AlertDialogDescription>
             {preview
-              ? `Ця папка містить ${ukPlural(preview.fileCount, "файл", "файли", "файлів")}. Ви впевнені, що хочете видалити її та весь її вміст?`
-              : "Завантаження списку того, що буде видалено…"}
+              ? t("deleteFolder.contains", { count: p("file", preview.fileCount) })
+              : t("deleteFolder.loading")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         {preview ? (
-          <p className="text-xs text-muted-foreground">Відновити вміст не можна.</p>
+          <p className="text-xs text-muted-foreground">{t("deleteFolder.irreversible")}</p>
         ) : null}
         {preview?.sampleNames?.length ? (
           <ul className="list-disc pl-5 text-sm text-muted-foreground">
@@ -85,14 +84,8 @@ export function DeletePreviewDialog({
         ) : null}
         {preview && viewers ? (
           <div className="space-y-3 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
-            <p>
-              Цю папку зараз можуть переглядати інші: {viewerSummary(preview)}. Після видалення їхній доступ
-              зникне.
-            </p>
-            <p className="text-xs">
-              Щоб уникнути цього, спочатку скасуйте спільний доступ у меню папки. Або підтвердьте видалення з
-              правами власника.
-            </p>
+            <p>{t("deleteFolder.viewers", { summary: viewerSummary(preview) })}</p>
+            <p className="text-xs">{t("deleteFolder.avoid")}</p>
             <label className="flex cursor-pointer items-start gap-2">
               <input
                 type="checkbox"
@@ -100,13 +93,15 @@ export function DeletePreviewDialog({
                 checked={ownerConfirm}
                 onChange={(event) => setOwnerConfirm(event.target.checked)}
               />
-              <span>Я власник і підтверджую відкликання доступу для всіх, хто зараз може переглядати цю папку.</span>
+              <span>{t("deleteFolder.ownerConfirm")}</span>
             </label>
           </div>
         ) : null}
         <div className="space-y-1.5">
           <Label htmlFor="delete-confirm-word">
-            Щоб підтвердити, введіть <span className="font-semibold">{CONFIRM_WORD}</span>
+            {typeLabelBefore}
+            <span className="font-semibold">{CONFIRM_WORD}</span>
+            {typeLabelAfter}
           </Label>
           <Input
             id="delete-confirm-word"
@@ -117,13 +112,13 @@ export function DeletePreviewDialog({
           />
         </div>
         <AlertDialogFooter>
-          <AlertDialogCancel>Скасувати</AlertDialogCancel>
+          <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
           <AlertDialogAction
             disabled={!canDelete}
             onClick={onConfirm}
             className="bg-destructive text-white hover:bg-destructive/90"
           >
-            {viewers ? "Відкликати доступ і видалити" : "Видалити все"}
+            {viewers ? t("deleteFolder.revokeAndDelete") : t("deleteFolder.deleteAll")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

@@ -5,6 +5,7 @@ import type { FileDto, FolderDto, OwnerDto, ResourceType, ShareDto } from "@data
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { api, ApiError } from "@/lib/api";
 import { formatBytes, formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export type ItemDetails = {
   kind: "file" | "folder";
@@ -58,14 +59,8 @@ export function detailsFromFile(
   };
 }
 
-function shareLabel(share: ShareDto) {
-  if (share.kind === "PUBLIC_LINK") return "Публічне посилання";
-  const email = share.user?.email || share.invitedEmail;
-  if (share.user?.name && email) return `${share.user.name} (${email})`;
-  return email || "Користувач";
-}
-
 function ShareAccessSection({ resourceType, resourceId }: { resourceType: ResourceType; resourceId: string }) {
+  const { t, locale } = useI18n();
   const [shares, setShares] = useState<ShareDto[] | "hidden" | "loading">("loading");
 
   useEffect(() => {
@@ -85,21 +80,28 @@ function ShareAccessSection({ resourceType, resourceId }: { resourceType: Resour
     };
   }, [resourceType, resourceId]);
 
+  const shareLabel = (share: ShareDto) => {
+    if (share.kind === "PUBLIC_LINK") return t("details.publicLink");
+    const email = share.user?.email || share.invitedEmail;
+    if (share.user?.name && email) return `${share.user.name} (${email})`;
+    return email || t("details.user");
+  };
+
   if (shares === "hidden") return null;
   if (shares === "loading") {
     return (
       <div className="mt-4 border-t pt-3">
-        <h3 className="mb-2 text-sm font-medium">Спільний доступ</h3>
-        <p className="text-sm text-muted-foreground">Завантаження…</p>
+        <h3 className="mb-2 text-sm font-medium">{t("details.sharing")}</h3>
+        <p className="text-sm text-muted-foreground">{t("common.loading")}</p>
       </div>
     );
   }
 
   return (
     <div className="mt-4 border-t pt-3">
-      <h3 className="mb-2 text-sm font-medium">Спільний доступ</h3>
+      <h3 className="mb-2 text-sm font-medium">{t("details.sharing")}</h3>
       {shares.length === 0 ? (
-        <p className="text-sm text-muted-foreground">Нікому не надано</p>
+        <p className="text-sm text-muted-foreground">{t("details.none")}</p>
       ) : (
         <ul className="space-y-2 text-sm">
           {shares.map((share) => (
@@ -107,10 +109,12 @@ function ShareAccessSection({ resourceType, resourceId }: { resourceType: Resour
               <p className="break-words">
                 {shareLabel(share)}
                 {share.kind === "USER" && !share.userId ? (
-                  <span className="ml-1 text-muted-foreground">(очікує)</span>
+                  <span className="ml-1 text-muted-foreground">({t("details.pending")})</span>
                 ) : null}
               </p>
-              <p className="text-xs text-muted-foreground">Надано {formatDateTime(share.createdAt)}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("details.granted", { date: formatDateTime(share.createdAt, locale) })}
+              </p>
             </li>
           ))}
         </ul>
@@ -119,30 +123,32 @@ function ShareAccessSection({ resourceType, resourceId }: { resourceType: Resour
   );
 }
 
-function typeLabel(details: ItemDetails) {
-  if (details.kind === "folder") return "Папка";
-  if (details.mimeType === "application/pdf" || details.name.toLowerCase().endsWith(".pdf")) return "Документ PDF";
-  return details.mimeType || "Файл";
-}
-
 export function ItemDetailsList({ details }: { details: ItemDetails }) {
+  const { t, locale } = useI18n();
   const ownerLabel = details.owner
     ? details.owner.email
       ? `${details.owner.name} (${details.owner.email})`
       : details.owner.name
     : undefined;
 
+  const typeLabel =
+    details.kind === "folder"
+      ? t("common.folder")
+      : details.mimeType === "application/pdf" || details.name.toLowerCase().endsWith(".pdf")
+        ? t("details.pdf")
+        : details.mimeType || t("details.file");
+
   const rows: { label: string; value: string }[] = [
-    { label: "Тип", value: typeLabel(details) },
-    { label: "Розмір", value: formatBytes(details.size) },
-    ...(details.kind === "folder" ? [{ label: "Елементи", value: String(details.itemCount ?? 0) }] : []),
+    { label: t("details.type"), value: typeLabel },
+    { label: t("details.size"), value: formatBytes(details.size) },
+    ...(details.kind === "folder" ? [{ label: t("details.items"), value: String(details.itemCount ?? 0) }] : []),
     ...(details.kind === "file" && details.versionCount
-      ? [{ label: "Версії", value: String(details.versionCount) }]
+      ? [{ label: t("details.versions"), value: String(details.versionCount) }]
       : []),
-    ...(details.location ? [{ label: "Розташування", value: details.location }] : []),
-    { label: "Створено", value: formatDateTime(details.createdAt) },
-    { label: "Змінено", value: formatDateTime(details.updatedAt) },
-    ...(ownerLabel ? [{ label: "Власник", value: ownerLabel }] : []),
+    ...(details.location ? [{ label: t("details.location"), value: details.location }] : []),
+    { label: t("details.created"), value: formatDateTime(details.createdAt, locale) },
+    { label: t("details.updated"), value: formatDateTime(details.updatedAt, locale) },
+    ...(ownerLabel ? [{ label: t("details.owner"), value: ownerLabel }] : []),
   ];
 
   return (
@@ -171,11 +177,14 @@ export function ItemDetailsDialog({
   onOpenChange: (open: boolean) => void;
   details: ItemDetails | null;
 }) {
+  const { t } = useI18n();
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle className="pr-6">{details ? `Деталі · ${details.name}` : "Деталі"}</DialogTitle>
+          <DialogTitle className="pr-6">
+            {details ? t("details.title", { name: details.name }) : t("details.titlePlain")}
+          </DialogTitle>
         </DialogHeader>
         {details ? <ItemDetailsList details={details} /> : null}
       </DialogContent>

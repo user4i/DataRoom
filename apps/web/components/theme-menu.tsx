@@ -2,6 +2,7 @@
 
 import { Check, Moon, Sun, SunMedium } from "lucide-react";
 import { useTheme, type ThemePreference } from "@/lib/theme";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -11,35 +12,32 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const OPTIONS: { id: ThemePreference; label: string; hint: string }[] = [
-  { id: "light", label: "Світла тема", hint: "Світлий фон" },
-  { id: "dark", label: "Темна", hint: "Темний фон" },
-  { id: "medium", label: "Середня", hint: "Приглушений сірий фон" },
-  { id: "system", label: "Системна", hint: "Як у системі" },
-];
-
 export function ThemeMenu() {
   const { theme, resolved, systemDark, setTheme } = useTheme();
-  const systemHint = systemDark ? "Як у системі · зараз темна" : "Як у системі · зараз світла";
+  const { t } = useI18n();
+  const options: { id: ThemePreference; label: string; hint: string }[] = [
+    { id: "light", label: t("theme.light"), hint: t("theme.lightHint") },
+    { id: "dark", label: t("theme.dark"), hint: t("theme.darkHint") },
+    { id: "medium", label: t("theme.medium"), hint: t("theme.mediumHint") },
+    { id: "system", label: t("theme.system"), hint: systemDark ? t("theme.systemDark") : t("theme.systemLight") },
+  ];
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label="Тема">
+        <Button variant="ghost" size="icon" className="size-8 text-muted-foreground" aria-label={t("theme.label")}>
           {resolved === "dark" ? <Moon className="size-4" /> : resolved === "medium" ? <SunMedium className="size-4" /> : <Sun className="size-4" />}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
-        <DropdownMenuLabel>Тема</DropdownMenuLabel>
-        {OPTIONS.map((option) => (
+        <DropdownMenuLabel>{t("theme.label")}</DropdownMenuLabel>
+        {options.map((option) => (
           <DropdownMenuItem key={option.id} onClick={() => setTheme(option.id)}>
             <span className="flex size-4 items-center justify-center">
               {theme === option.id ? <Check className="size-4" /> : null}
             </span>
             <span>
               <span className="block">{option.label}</span>
-              <span className="block text-xs text-muted-foreground">
-                {option.id === "system" ? systemHint : option.hint}
-              </span>
+              <span className="block text-xs text-muted-foreground">{option.hint}</span>
             </span>
           </DropdownMenuItem>
         ))}

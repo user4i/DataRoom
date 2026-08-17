@@ -11,7 +11,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { useDensityFlags } from "@/lib/density";
-import { formatBytes, formatDateTime, ukPlural } from "@/lib/format";
+import { formatBytes, formatDateTime } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 
 export function FolderList({
   folders,
@@ -30,12 +31,13 @@ export function FolderList({
   onShare: (folder: FolderDto) => void;
   onDelete: (folder: FolderDto) => void;
 }) {
+  const { t, p, locale } = useI18n();
   const { dense, minimal } = useDensityFlags();
   if (folders.length === 0) return null;
   return (
     <div className={minimal ? "space-y-0" : "space-y-1"}>
       {minimal ? null : (
-        <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">Папки</p>
+        <p className="px-1 text-xs font-medium uppercase tracking-wide text-muted-foreground">{t("explorer.folders")}</p>
       )}
       <ul className={`divide-y bg-card ${minimal ? "border-y" : "rounded-lg border"}`}>
         {folders.map((folder) => (
@@ -49,8 +51,8 @@ export function FolderList({
                 <p className={`truncate ${minimal ? "text-sm" : "font-medium"}`}>{folder.name}</p>
                 {minimal ? null : (
                 <p className="text-xs text-muted-foreground">
-                  {ukPlural(folder.itemCount, "елемент", "елементи", "елементів")} · {formatBytes(folder.totalSize)}
-                  {!dense && folder.createdAt ? ` · ${formatDateTime(folder.createdAt)}` : ""}
+                  {p("item", folder.itemCount)} · {formatBytes(folder.totalSize)}
+                  {!dense && folder.createdAt ? ` · ${formatDateTime(folder.createdAt, locale)}` : ""}
                 </p>
                 )}
               </div>
@@ -62,15 +64,15 @@ export function FolderList({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onOpen(folder)}>Відкрити</DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onDetails(folder)}>Деталі</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onOpen(folder)}>{t("common.open")}</DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onDetails(folder)}>{t("common.details")}</DropdownMenuItem>
                 {canEdit ? (
                   <>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem onClick={() => onRename(folder)}>Перейменувати</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onShare(folder)}>Поділитися</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onRename(folder)}>{t("common.rename")}</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onShare(folder)}>{t("common.share")}</DropdownMenuItem>
                     <DropdownMenuItem variant="destructive" onClick={() => onDelete(folder)}>
-                      Видалити
+                      {t("common.delete")}
                     </DropdownMenuItem>
                   </>
                 ) : null}

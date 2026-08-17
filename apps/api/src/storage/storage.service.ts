@@ -12,6 +12,7 @@ import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { createReadStream, existsSync } from 'fs';
 import { mkdir, unlink, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
+import { t } from '../i18n/t';
 
 @Injectable()
 export class StorageService {
@@ -136,7 +137,7 @@ export class StorageService {
   verifyUploadToken(token: string) {
     const payload = this.jwt.verify<{ purpose: string; storageKey: string }>(token);
     if (payload.purpose !== 'upload' || !payload.storageKey) {
-      throw new Error('Недійсний токен завантаження');
+      throw new Error(t('invalidUploadToken'));
     }
     return payload.storageKey;
   }
@@ -144,7 +145,7 @@ export class StorageService {
   verifyDownloadToken(token: string) {
     const payload = this.jwt.verify<{ purpose: string; storageKey: string; filename?: string }>(token);
     if (payload.purpose !== 'download' || !payload.storageKey) {
-      throw new Error('Недійсний токен завантаження файлу');
+      throw new Error(t('invalidDownloadToken'));
     }
     return payload;
   }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { api, ApiError } from "@/lib/api";
-import { ukPlural } from "@/lib/format";
+import { useI18n } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
@@ -30,6 +30,7 @@ export function MoveFileDialog({
   fileId: string;
   onMove: (folderId: string | null, options?: { confirmViewers?: boolean }) => Promise<void>;
 }) {
+  const { t, p } = useI18n();
   const [parentId, setParentId] = useState<string | null>(null);
   const [crumbs, setCrumbs] = useState<{ id: string | null; name: string }[]>([{ id: null, name: dataRoomName }]);
   const [folders, setFolders] = useState<Node[]>([]);
@@ -45,7 +46,7 @@ export function MoveFileDialog({
       const data = await api<Node[]>(`/data-rooms/${dataRoomId}/folder-tree${q}`);
       setFolders(data);
     } catch (error) {
-      toast.error(error instanceof ApiError ? error.message : "Не вдалося завантажити папки");
+      toast.error(error instanceof ApiError ? error.message : t("move.loadFailed"));
     }
   };
 
@@ -80,7 +81,7 @@ export function MoveFileDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Перемістити файл</DialogTitle>
+          <DialogTitle>{t("move.title")}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-wrap gap-1 text-sm text-muted-foreground">
           {crumbs.map((c, i) => (
@@ -102,7 +103,7 @@ export function MoveFileDialog({
         </div>
         <ul className="max-h-64 divide-y overflow-auto rounded-md border">
           {folders.length === 0 ? (
-            <li className="px-3 py-6 text-center text-sm text-muted-foreground">Тут немає вкладених папок</li>
+            <li className="px-3 py-6 text-center text-sm text-muted-foreground">{t("move.noFolders")}</li>
           ) : (
             folders.map((folder) => (
               <li key={folder.id}>
@@ -124,12 +125,9 @@ export function MoveFileDialog({
         {viewers && impact ? (
           <div className="space-y-2 rounded-md border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-100">
             <p>
-              Цей файл зараз можуть бачити інші в папці, яку переглядають
-              {impact.publicLinkCount
-                ? ` · ${ukPlural(impact.publicLinkCount, "публічне посилання", "публічні посилання", "публічних посилань")}`
-                : ""}
-              {impact.peopleCount ? ` · ${ukPlural(impact.peopleCount, "людина", "людини", "людей")}` : ""}. Після
-              переміщення він зникне з їхнього перегляду.
+              {t("move.viewers")}
+              {impact.publicLinkCount ? ` · ${p("publicLink", impact.publicLinkCount)}` : ""}
+              {impact.peopleCount ? ` · ${p("person", impact.peopleCount)}` : ""}. {t("move.after")}
             </p>
             <label className="flex cursor-pointer items-start gap-2">
               <input
@@ -138,13 +136,13 @@ export function MoveFileDialog({
                 checked={ownerConfirm}
                 onChange={(event) => setOwnerConfirm(event.target.checked)}
               />
-              <span>Я власник і підтверджую переміщення з відкликанням цього перегляду.</span>
+              <span>{t("move.ownerConfirm")}</span>
             </label>
           </div>
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Скасувати
+            {t("common.cancel")}
           </Button>
           <Button
             disabled={busy || (viewers && !ownerConfirm)}
@@ -154,13 +152,13 @@ export function MoveFileDialog({
                 await onMove(parentId, { confirmViewers: viewers });
                 onOpenChange(false);
               } catch (error) {
-                toast.error(error instanceof ApiError ? error.message : "Не вдалося перемістити файл");
+                toast.error(error instanceof ApiError ? error.message : t("move.failed"));
               } finally {
                 setBusy(false);
               }
             }}
           >
-            {viewers ? "Перемістити з правами власника" : "Перемістити сюди"}
+            {viewers ? t("move.moveAsOwner") : t("move.moveHere")}
           </Button>
         </DialogFooter>
       </DialogContent>

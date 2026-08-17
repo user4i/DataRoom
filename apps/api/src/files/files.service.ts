@@ -11,6 +11,7 @@ import { StorageService } from '../storage/storage.service';
 import { rethrowUnique } from '../common/prisma-errors';
 import { ancestorIdsFromPath, serializeFile } from '../common/serialize';
 import { ConfirmFileDto, MoveFileDto, PresignDto } from './dto/file.dto';
+import { t } from '../i18n/t';
 
 const PDF = 'application/pdf';
 
@@ -26,10 +27,10 @@ export class FilesService {
     const mime = mimeType.toLowerCase();
     const lower = name.toLowerCase();
     if (mime !== PDF && mime !== 'application/x-pdf') {
-      throw new BadRequestException('Дозволені лише файли PDF');
+      throw new BadRequestException(t('pdfOnly'));
     }
     if (!lower.endsWith('.pdf')) {
-      throw new BadRequestException('Назва файлу має закінчуватися на .pdf');
+      throw new BadRequestException(t('nameMustPdf'));
     }
   }
 
@@ -70,7 +71,7 @@ export class FilesService {
   ) {
     await this.access.assertCanEdit(userId, dataRoomId);
     const trimmed = name.trim();
-    if (!trimmed) throw new BadRequestException('Потрібна назва файлу');
+    if (!trimmed) throw new BadRequestException(t('fileNameRequired'));
     const existing = await this.prisma.file.findFirst({
       where: {
         dataRoomId,
@@ -96,7 +97,7 @@ export class FilesService {
     if (dto.folderId) {
       const folder = await this.access.getFolderOrThrow(dto.folderId);
       if (folder.dataRoomId !== dto.dataRoomId) {
-        throw new NotFoundException('Папку не знайдено');
+        throw new NotFoundException(t('folderNotFound'));
       }
     }
     const storageKey = `rooms/${dto.dataRoomId}/${randomUUID()}.pdf`;
@@ -110,12 +111,12 @@ export class FilesService {
     if (folderId) {
       const folder = await this.access.getFolderOrThrow(folderId);
       if (folder.dataRoomId !== dto.dataRoomId) {
-        throw new NotFoundException('Папку не знайдено');
+        throw new NotFoundException(t('folderNotFound'));
       }
     }
 
     if (this.storage.driver() === 'local' && !this.storage.existsLocal(dto.storageKey)) {
-      throw new BadRequestException('Завантаження не завершилося');
+      throw new BadRequestException(t('uploadIncomplete'));
     }
 
     const name = dto.name.trim();
@@ -133,7 +134,7 @@ export class FilesService {
       if (dto.conflict === 'keep_both') {
         return this.createFile(dto.dataRoomId, folderId, await this.uniqueName(dto.dataRoomId, folderId, name), dto);
       }
-      throw new ConflictException('Файл із такою назвою вже існує тут');
+      throw new ConflictException(t('fileNameTaken'));
     }
     return this.createFile(dto.dataRoomId, folderId, name, dto);
   }
@@ -172,7 +173,7 @@ export class FilesService {
       });
       return serializeFile(file);
     } catch (error) {
-      rethrowUnique(error, 'Файл із такою назвою вже існує тут');
+      rethrowUnique(error, t('fileNameTaken'));
     }
   }
 
@@ -214,7 +215,7 @@ export class FilesService {
         });
         return serializeFile(updated);
       } catch (error) {
-        rethrowUnique(error, 'Файл із такою назвою вже існує тут');
+        rethrowUnique(error, t('fileNameTaken'));
       }
     }
 
@@ -223,7 +224,7 @@ export class FilesService {
       if (nextFolderId) {
         const dest = await this.access.getFolderOrThrow(nextFolderId);
         if (dest.dataRoomId !== file.dataRoomId) {
-          throw new NotFoundException('Папку призначення не знайдено');
+          throw new NotFoundException(t('destFolderNotFound'));
         }
       }
       try {
@@ -259,7 +260,7 @@ export class FilesService {
         });
         return serializeFile(updated);
       } catch (error) {
-        rethrowUnique(error, 'Файл із такою назвою вже існує в призначенні');
+        rethrowUnique(error, t('fileNameTakenDest'));
       }
     }
 
@@ -273,14 +274,14 @@ export class FilesService {
     if (nextFolderId) {
       const dest = await this.access.getFolderOrThrow(nextFolderId);
       if (dest.dataRoomId !== file.dataRoomId) {
-        throw new NotFoundException('Папку призначення не знайдено');
+        throw new NotFoundException(t('destFolderNotFound'));
       }
     }
 
     const lostViewers = await this.viewersLostByMove(file, nextFolderId);
     if (lostViewers.publicLinkCount + lostViewers.peopleCount > 0 && !dto.confirmViewers) {
       throw new ConflictException(
-        'Цей файл зараз можуть бачити інші в папці, яку переглядають. Підтвердьте переміщення з правами власника.',
+        t('fileViewersConfirm'),
       );
     }
 
@@ -302,7 +303,7 @@ export class FilesService {
         const unique = await this.uniqueName(file.dataRoomId, nextFolderId, file.name, id);
         return this.update(userId, id, { folderId: nextFolderId, name: unique });
       }
-      throw new ConflictException('Файл із такою назвою вже існує в призначенні');
+      throw new ConflictException(t('fileNameTakenDest'));
     }
 
     return this.update(userId, id, {
@@ -317,7 +318,7 @@ export class FilesService {
     if (destFolderId) {
       const dest = await this.access.getFolderOrThrow(destFolderId);
       if (dest.dataRoomId !== file.dataRoomId) {
-        throw new NotFoundException('Папку призначення не знайдено');
+        throw new NotFoundException(t('destFolderNotFound'));
       }
     }
     return this.viewersLostByMove(file, destFolderId);
@@ -538,9 +539,9 @@ export class FilesService {
     const file = await this.access.getFileOrThrow(fileId);
     await this.access.assertCanView({ userId, dataRoomId: file.dataRoomId, fileId: file.id });
     const version = await this.prisma.fileVersion.findFirst({ where: { id: versionId, fileId } });
-    if (!version) throw new NotFoundException('Версію не знайдено');
+    if (!version) throw new NotFoundException(t('versionNotFound'));
     if (!(await this.storage.exists(version.storageKey))) {
-      throw new NotFoundException('Файл відсутній у сховищі');
+      throw new NotFoundException(t('blobMissing'));
     }
     const url = await this.storage.signDownload(version.storageKey, file.name);
     return { url, version: version.version, size: version.size.toString() };

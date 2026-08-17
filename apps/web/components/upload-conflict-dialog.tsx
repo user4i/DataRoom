@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { useI18n } from "@/lib/i18n";
 
 export type ConflictAction = "replace" | "keep_both" | "rename_new" | "rename_old" | "rename_both";
 
@@ -39,6 +40,7 @@ export function UploadConflictDialog({
   onResolve: (decision: ConflictDecision) => void;
   mode?: "upload" | "move";
 }) {
+  const { t } = useI18n();
   const [action, setAction] = useState<ConflictAction>("replace");
   const [newName, setNewName] = useState("");
   const [oldName, setOldName] = useState("");
@@ -55,31 +57,27 @@ export function UploadConflictDialog({
     ? [
         {
           id: "replace",
-          title: "Замінити наявний файл",
-          hint: "Поточний файл збережеться як попередня версія.",
+          title: t("conflict.replace"),
+          hint: t("conflict.replaceHint"),
         },
         {
           id: "keep_both",
-          title: "Залишити обидва",
+          title: t("conflict.keepBoth"),
           hint: moving
-            ? `Перемістити файл як «${conflict.suggestedNewName}».`
-            : `Завантажити новий файл як «${conflict.suggestedNewName}».`,
+            ? t("conflict.keepBothMove", { name: conflict.suggestedNewName })
+            : t("conflict.keepBothUpload", { name: conflict.suggestedNewName }),
         },
         {
           id: "rename_new",
-          title: moving ? "Перейменувати файл, який переміщуєте" : "Перейменувати новий файл",
-          hint: moving
-            ? "Оберіть назву для файлу в папці призначення."
-            : "Оберіть назву для файлу, який завантажуєте.",
+          title: moving ? t("conflict.renameIncomingMove") : t("conflict.renameIncomingUpload"),
+          hint: moving ? t("conflict.renameIncomingMoveHint") : t("conflict.renameIncomingUploadHint"),
         },
         {
           id: "rename_old",
-          title: "Перейменувати наявний файл",
-          hint: moving
-            ? "Звільнити оригінальну назву для файлу, який переміщуєте."
-            : "Звільнити оригінальну назву для нового завантаження.",
+          title: t("conflict.renameExisting"),
+          hint: moving ? t("conflict.renameExistingMoveHint") : t("conflict.renameExistingUploadHint"),
         },
-        { id: "rename_both", title: "Перейменувати обидва файли", hint: "Дайте кожному файлу нову назву." },
+        { id: "rename_both", title: t("conflict.renameBoth"), hint: t("conflict.renameBothHint") },
       ]
     : [];
 
@@ -103,10 +101,10 @@ export function UploadConflictDialog({
     <Dialog open={Boolean(conflict)} onOpenChange={(open) => !open && onResolve({ action: "skip" })}>
       <DialogContent className="max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Файл уже існує</DialogTitle>
+          <DialogTitle>{t("conflict.title")}</DialogTitle>
           <DialogDescription>
-            Файл із назвою «{conflict?.incomingName}» уже є в цій папці. Оберіть, що зробити
-            {moving ? " з переміщенням." : " з новим завантаженням."}
+            {t("conflict.body", { name: conflict?.incomingName ?? "" })}
+            {moving ? t("conflict.bodyMove") : t("conflict.bodyUpload")}
           </DialogDescription>
         </DialogHeader>
         <fieldset className="space-y-2">
@@ -140,13 +138,13 @@ export function UploadConflictDialog({
         </fieldset>
         {action === "rename_new" || action === "rename_both" ? (
           <div className="space-y-1.5">
-            <Label htmlFor="conflict-new-name">{moving ? "Назва файлу, який переміщуєте" : "Назва нового файлу"}</Label>
+            <Label htmlFor="conflict-new-name">{moving ? t("conflict.newNameMove") : t("conflict.newNameUpload")}</Label>
             <Input id="conflict-new-name" value={newName} onChange={(e) => setNewName(e.target.value)} />
           </div>
         ) : null}
         {action === "rename_old" || action === "rename_both" ? (
           <div className="space-y-1.5">
-            <Label htmlFor="conflict-old-name">Назва наявного файлу</Label>
+            <Label htmlFor="conflict-old-name">{t("conflict.oldName")}</Label>
             <Input
               id="conflict-old-name"
               value={oldName}
@@ -156,10 +154,10 @@ export function UploadConflictDialog({
         ) : null}
         <DialogFooter>
           <Button variant="outline" onClick={() => onResolve({ action: "skip" })}>
-            {moving ? "Скасувати" : "Пропустити"}
+            {moving ? t("common.cancel") : t("conflict.skip")}
           </Button>
           <Button disabled={!continueEnabled} onClick={submit}>
-            Продовжити
+            {t("conflict.continue")}
           </Button>
         </DialogFooter>
       </DialogContent>
