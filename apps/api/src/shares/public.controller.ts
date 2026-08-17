@@ -11,9 +11,10 @@ export class PublicController {
     @Param('token') token: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('q') q?: string,
   ) {
     const parsed = parseListingPage(page, pageSize);
-    return this.shares.publicMeta(token, parsed.page, parsed.pageSize);
+    return this.shares.publicMeta(token, parsed.page, parsed.pageSize, q);
   }
 
   @Get(':token/folders/:folderId')
@@ -22,9 +23,10 @@ export class PublicController {
     @Param('folderId') folderId: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('q') q?: string,
   ) {
     const parsed = parseListingPage(page, pageSize);
-    return this.shares.publicFolder(token, folderId, parsed.page, parsed.pageSize);
+    return this.shares.publicFolder(token, folderId, parsed.page, parsed.pageSize, q);
   }
 
   @Get(':token/files/:fileId')

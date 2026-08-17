@@ -20,10 +20,13 @@ export async function listFolderPage(
     parentId: string | null;
     page: number;
     pageSize: number;
+    q?: string;
   },
 ) {
-  const folderWhere = { dataRoomId: args.dataRoomId, parentId: args.parentId };
-  const fileWhere = { dataRoomId: args.dataRoomId, folderId: args.parentId };
+  const name = args.q?.trim();
+  const nameFilter = name ? { name: { contains: name, mode: 'insensitive' as const } } : {};
+  const folderWhere = { dataRoomId: args.dataRoomId, parentId: args.parentId, ...nameFilter };
+  const fileWhere = { dataRoomId: args.dataRoomId, folderId: args.parentId, ...nameFilter };
 
   const [folderCount, fileCount] = await Promise.all([
     prisma.folder.count({ where: folderWhere }),

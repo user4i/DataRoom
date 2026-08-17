@@ -58,6 +58,7 @@ export function Explorer({
   const [deletePreview, setDeletePreview] = useState<DeletionPreviewDto | null>(null);
   const [deleteFolderId, setDeleteFolderId] = useState<string | null>(null);
   const [query, setQuery] = useState("");
+  const [appliedQuery, setAppliedQuery] = useState("");
   const [results, setResults] = useState<{ folders: { id: string; name: string }[]; files: { id: string; name: string }[] } | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [uploadOpen, setUploadOpen] = useState(false);
@@ -76,14 +77,15 @@ export function Explorer({
     const silent = Boolean(opts?.silent);
     try {
       if (!silent) setError(null);
-      const query = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+      const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize) });
+      if (appliedQuery) params.set("q", appliedQuery);
       const path = publicToken
         ? folderId
-          ? `/public/${publicToken}/folders/${folderId}?${query}`
-          : `/public/${publicToken}?${query}`
+          ? `/public/${publicToken}/folders/${folderId}?${params}`
+          : `/public/${publicToken}?${params}`
         : folderId
-          ? `/folders/${folderId}?${query}`
-          : `/data-rooms/${roomId}?${query}`;
+          ? `/folders/${folderId}?${params}`
+          : `/data-rooms/${roomId}?${params}`;
       const request = { progress: !silent };
       const data = publicToken && !folderId
         ? await api<{ listing?: ListingDto; file?: unknown; share: { resourceType: string } }>(path, request)
@@ -109,7 +111,7 @@ export function Explorer({
       else if (status === 401) setError(t("explorer.signIn"));
       else setError(err instanceof Error ? err.message : t("explorer.loadFailed"));
     }
-  }, [roomId, folderId, publicToken, router, page, pageSize, t]);
+  }, [roomId, folderId, publicToken, router, page, pageSize, appliedQuery, t]);
 
   useEffect(() => {
     const stored = Number(window.localStorage.getItem(PAGE_SIZE_STORAGE_KEY));
@@ -120,6 +122,14 @@ export function Explorer({
   useEffect(() => {
     setPage(1);
   }, [roomId, folderId, publicToken]);
+
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setAppliedQuery(query.trim());
+      setPage(1);
+    }, 250);
+    return () => clearTimeout(handle);
+  }, [query]);
 
   useEffect(() => {
     if (!pageSizeReady) return;
@@ -253,6 +263,15 @@ export function Explorer({
     );
   }
 
+  const elsewhereFolders =
+    results && query.trim()
+      ? results.folders.filter((folder) => !listing.folders.some((item) => item.id === folder.id))
+      : [];
+  const elsewhereFiles =
+    results && query.trim()
+      ? results.files.filter((file) => !listing.files.some((item) => item.id === file.id))
+      : [];
+
   return (
     <div className={minimal ? "space-y-2" : dense ? "space-y-3" : "space-y-6"}>
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -280,92 +299,60 @@ export function Explorer({
             </Button>
           ) : null}
         </div>
-        {canEdit ? (
-          dense ? (
-          <div className="flex items-center gap-1">
-            {!isPublic ? (
+        <div className="flex items-center gap-1">
+          <Button
+            variant={searchOpen || query ? "secondary" : "ghost"}
+            size="icon"
+            className="size-8"
+            aria-label={t("explorer.search")}
+            onClick={() => setSearchOpen((v) => !v)}
+          >
+            <Search className="size-4" />
+          </Button>
+          {canEdit ? (
+            <>
               <Button
-                variant={searchOpen || query ? "secondary" : "ghost"}
+                variant={uploadOpen || uploadBusy ? "secondary" : "ghost"}
                 size="icon"
                 className="size-8"
-                aria-label={t("explorer.search")}
-                onClick={() => setSearchOpen((v) => !v)}
+                aria-label={t("explorer.uploadPdf")}
+                onClick={() => setUploadOpen((v) => !v)}
               >
-                <Search className="size-4" />
+                <Upload className="size-4" />
               </Button>
-            ) : null}
-            <Button
-              variant={uploadOpen || uploadBusy ? "secondary" : "ghost"}
-              size="icon"
-              className="size-8"
-              aria-label={t("explorer.uploadPdf")}
-              onClick={() => setUploadOpen((v) => !v)}
-            >
-              <Upload className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8"
-              aria-label={t("common.share")}
-              onClick={() =>
-                setShare({
-                  type: listing.folder ? "FOLDER" : "DATA_ROOM",
-                  id: listing.folder?.id ?? listing.dataRoom.id,
-                })
-              }
-            >
-              <Share2 className="size-4" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8"
-              aria-label={t("explorer.newFolder")}
-              onClick={() => setCreateOpen(true)}
-            >
-              <Plus className="size-4" />
-            </Button>
-          </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label={t("common.share")}
+                onClick={() =>
+                  setShare({
+                    type: listing.folder ? "FOLDER" : "DATA_ROOM",
+                    id: listing.folder?.id ?? listing.dataRoom.id,
+                  })
+                }
+              >
+                <Share2 className="size-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="size-8"
+                aria-label={t("explorer.newFolder")}
+                onClick={() => setCreateOpen(true)}
+              >
+                <Plus className="size-4" />
+              </Button>
+            </>
           ) : (
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() =>
-                setShare({
-                  type: listing.folder ? "FOLDER" : "DATA_ROOM",
-                  id: listing.folder?.id ?? listing.dataRoom.id,
-                })
-              }
-            >
-              <Share2 className="size-4" /> {t("common.share")}
-            </Button>
-            <Button onClick={() => setCreateOpen(true)}>
-              <Plus className="size-4" /> {t("explorer.newFolder")}
-            </Button>
-          </div>
-          )
-        ) : (
-          <div className="flex items-center gap-1">
-            {!isPublic && dense ? (
-              <Button
-                variant={searchOpen || query ? "secondary" : "ghost"}
-                size="icon"
-                className="size-8"
-                aria-label={t("explorer.search")}
-                onClick={() => setSearchOpen((v) => !v)}
-              >
-                <Search className="size-4" />
-              </Button>
-            ) : null}
             <p className="text-sm text-muted-foreground">{t("explorer.viewOnly")}</p>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
-      {!isPublic && (!dense || searchOpen || query.trim()) ? (
+      {searchOpen || query.trim() ? (
         <Input
-          autoFocus={dense}
+          autoFocus
           placeholder={t("explorer.searchPlaceholder")}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
@@ -378,29 +365,38 @@ export function Explorer({
         />
       ) : null}
 
-      {results && query.trim() ? (
+      {!isPublic && (elsewhereFolders.length > 0 || elsewhereFiles.length > 0) ? (
         <div className="rounded-lg border bg-card p-3">
-          <p className="mb-2 text-sm font-medium">{t("explorer.searchResults")}</p>
-          {results.folders.length === 0 && results.files.length === 0 ? (
-            <p className="text-sm text-muted-foreground">{t("explorer.nothingFound")}</p>
-          ) : (
-            <ul className="space-y-1 text-sm">
-              {results.folders.map((f) => (
-                <li key={f.id}>
-                  <button className="text-left hover:underline" onClick={() => openFolder(f as FolderDto)}>
-                    {t("common.folder")}: {f.name}
-                  </button>
-                </li>
-              ))}
-              {results.files.map((f) => (
-                <li key={f.id}>
-                  <button className="text-left hover:underline" onClick={() => openFile({ ...f, dataRoomId: listing.dataRoom.id, folderId: null, size: "0", mimeType: "application/pdf", createdAt: "", updatedAt: "" })}>
-                    {t("common.file")}: {f.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-          )}
+          <p className="mb-2 text-sm font-medium">{t("explorer.elsewhere")}</p>
+          <ul className="space-y-1 text-sm">
+            {elsewhereFolders.map((f) => (
+              <li key={f.id}>
+                <button className="text-left hover:underline" onClick={() => openFolder(f as FolderDto)}>
+                  {t("common.folder")}: {f.name}
+                </button>
+              </li>
+            ))}
+            {elsewhereFiles.map((f) => (
+              <li key={f.id}>
+                <button
+                  className="text-left hover:underline"
+                  onClick={() =>
+                    openFile({
+                      ...f,
+                      dataRoomId: listing.dataRoom.id,
+                      folderId: null,
+                      size: "0",
+                      mimeType: "application/pdf",
+                      createdAt: "",
+                      updatedAt: "",
+                    })
+                  }
+                >
+                  {t("common.file")}: {f.name}
+                </button>
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
 
@@ -416,8 +412,14 @@ export function Explorer({
 
       {listing.total === 0 ? (
         <EmptyState
-          title={canEdit ? t("explorer.emptyTitle") : t("explorer.emptyTitleViewer")}
-          description={canEdit ? t("explorer.emptyDescription") : t("explorer.emptyDescriptionViewer")}
+          title={appliedQuery ? t("explorer.nothingFound") : canEdit ? t("explorer.emptyTitle") : t("explorer.emptyTitleViewer")}
+          description={
+            appliedQuery
+              ? t("explorer.filterEmpty")
+              : canEdit
+                ? t("explorer.emptyDescription")
+                : t("explorer.emptyDescriptionViewer")
+          }
         />
       ) : (
         <div

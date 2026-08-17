@@ -57,7 +57,7 @@ export class FoldersService {
     }
   }
 
-  async get(userId: string | null, id: string, publicToken?: string, page = 1, pageSize = 20) {
+  async get(userId: string | null, id: string, publicToken?: string, page = 1, pageSize = 20, q?: string) {
     const folder = await this.access.getFolderOrThrow(id);
     const { access, room } = await this.access.assertCanView({
       userId,
@@ -71,6 +71,7 @@ export class FoldersService {
       parentId: folder.id,
       page,
       pageSize,
+      q,
     });
 
     const ancestors = await this.prisma.folder.findMany({

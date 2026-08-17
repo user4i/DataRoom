@@ -107,6 +107,7 @@ export class DataRoomsService {
     publicToken?: string,
     page = 1,
     pageSize = 20,
+    q?: string,
   ) {
     const { access, room } = await this.access.assertCanView({
       userId,
@@ -118,6 +119,7 @@ export class DataRoomsService {
       parentId: null,
       page,
       pageSize,
+      q,
     });
     return this.analysis.decorateListing({
       folder: null,

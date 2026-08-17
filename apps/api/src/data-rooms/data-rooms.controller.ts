@@ -30,9 +30,10 @@ export class DataRoomsController {
     @Param('id') id: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('q') q?: string,
   ) {
     const parsed = parseListingPage(page, pageSize);
-    return this.rooms.listing(user.id, id, undefined, parsed.page, parsed.pageSize);
+    return this.rooms.listing(user.id, id, undefined, parsed.page, parsed.pageSize, q);
   }
 
   @Get(':id/meta')

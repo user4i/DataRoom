@@ -38,9 +38,10 @@ export class FoldersController {
     @Param('id') id: string,
     @Query('page') page?: string,
     @Query('pageSize') pageSize?: string,
+    @Query('q') q?: string,
   ) {
     const parsed = parseListingPage(page, pageSize);
-    return this.folders.get(user.id, id, undefined, parsed.page, parsed.pageSize);
+    return this.folders.get(user.id, id, undefined, parsed.page, parsed.pageSize, q);
   }
 
   @Patch('folders/:id')
